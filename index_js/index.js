@@ -141,6 +141,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Update risk level
                 updateRisk(riskData.level);
+                const explanationElement = document.getElementById("ai-risk-explanation");
+
+                const contextForAI = {
+                    city,
+                    riskLevel: riskData.level,
+                    incidents24h: riskData.incidents,
+                    timeOfDay:
+                        new Date().getHours() >= 20 || new Date().getHours() <= 5
+                            ? "Night"
+                            : "Day"
+                };
+
+                fetchRiskExplanation(contextForAI).then(text => {
+                    explanationElement.textContent = text;
+                });
+
 
                 // Debug logging
                 console.log('Location detected:', city);
@@ -181,6 +197,25 @@ document.addEventListener("DOMContentLoaded", () => {
             panicButton.classList.add("pulse");
         }
     }
+
+    async function fetchRiskExplanation(context) {
+        try {
+            const response = await fetch("/api/explain-risk", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(context)
+            });
+
+            const data = await response.json();
+            return data.explanation;
+        } catch (err) {
+            console.error(err);
+            return "Unable to generate explanation at this time.";
+        }
+    }
+
 
     /* -----------------------------
        5. PANIC BUTTON & SAFETY ACTIONS
