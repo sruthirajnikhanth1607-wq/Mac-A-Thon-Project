@@ -38,6 +38,30 @@
       </select>
     </div>
 
+    <section class="settings-card">
+    <h2>🚨 Emergency Contacts</h2>
+    <p class="settings-desc">
+      These contacts may be notified if you don’t reach your destination.
+    </p>
+
+    <div class="contact-form">
+      <input
+        type="text"
+        id="contact-name"
+        placeholder="Contact name"
+      />
+      <input
+        type="tel"
+        id="contact-phone"
+        placeholder="Phone number"
+      />
+      <button onclick="addContact()">Add Contact</button>
+  </div>
+
+  <ul id="contacts-list" class="contacts-list"></ul>
+</section>
+
+
     <button id="saveBtn">Save Settings</button>
     <p id="statusMessage" class="status"></p>
   </div>
