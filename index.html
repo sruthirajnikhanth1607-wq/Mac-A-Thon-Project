@@ -165,6 +165,10 @@ Description:
             color: #9ca3af;
         }
 
+        .incident-note {
+            margin-top: 1rem;
+        }
+
         /* Risk levels */
         .risk.low {
             color: #047857;
@@ -326,6 +330,25 @@ Description:
             font-size: 0.85rem;
             color: #6b7280;
         }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.6);
+            }
+
+            70% {
+                box-shadow: 0 0 0 14px rgba(185, 28, 28, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(185, 28, 28, 0);
+            }
+        }
+
+        .panic-button.pulse {
+            animation: pulse 1.5s infinite;
+        }
+
 
         /* =========================
    MOBILE (phones ≤ 640px)
@@ -505,7 +528,7 @@ Description:
                 `;
                     },
                     () => {
-                        locationText.textContent = "📍 Location access denied.";
+                        locationText.textContent = "📍 Location access denied. Change in settings for location data.";
                     }
                 );
             }
@@ -516,6 +539,8 @@ Description:
                ----------------------------- */
             const riskLevelElement = document.getElementById("risk-level");
             const safetyActionsPanel = document.getElementById("safety-actions");
+            const incidentContext = document.getElementById("incident-context");
+
 
             // Possible values: "low", "medium", "high"
             const currentRiskLevel = "high"; // ← simulate backend data
@@ -527,22 +552,24 @@ Description:
                 if (level === "low") {
                     riskLevelElement.textContent = "Low";
                     safetyActionsPanel.classList.add("hidden");
+                    incidentContext.textContent = "No immediate threats detected in your area.";
                 }
 
                 if (level === "medium") {
                     riskLevelElement.textContent = "Medium";
                     safetyActionsPanel.classList.remove("hidden");
+                    incidentContext.textContent = "Increased activity reported nearby. Stay alert.";
                 }
 
                 if (level === "high") {
                     riskLevelElement.textContent = "High";
                     safetyActionsPanel.classList.remove("hidden");
+                    incidentContext.textContent = "Elevated activity reported nearby.";
                 }
             }
 
+
             updateRisk(currentRiskLevel);
-
-
             /* -----------------------------
                4. PANIC BUTTON
                ----------------------------- */
@@ -558,6 +585,10 @@ Description:
                 //window.location.href = "tel:911";
                 //}
             });
+
+            if (currentRiskLevel === "high") {
+                panicButton.classList.add("pulse");
+            }
 
 
             /* -----------------------------
@@ -604,7 +635,7 @@ Description:
                     <span class="card-subtext">Based on recent activity</span>
                 </section>
 
-                <p class="safety-text muted">
+                <p class="safety-text muted" id="incident-context">
                     No immediate threats detected in your area.
                 </p>
 
@@ -638,6 +669,9 @@ Description:
                             📰 View CP24 Local News
                             <span class="external-arrow">↗</span>
                         </a>
+                        <p class="incident-note">
+                            SafeSense prioritizes trusted local sources over unverified alerts.
+                        </p>
                     </div>
                 </section>
 
