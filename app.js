@@ -1,4 +1,5 @@
-const GEMINI_API_KEY = "AIzaSyDID3Ca2V7G6pIlsMfUfJfjccTR5KBntvM";
+// 🔐 Replace with your NEW regenerated key
+const GEMINI_API_KEY = "AIzaSyA7ERDV19SY7_gz_QZsN88KfxQ7s_PXZwk";
 
 async function sendMessage() {
 
@@ -15,7 +16,7 @@ async function sendMessage() {
   try {
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -24,11 +25,11 @@ async function sendMessage() {
         body: JSON.stringify({
           contents: [
             {
+              role: "user",
               parts: [
                 {
-                  text:
-                    `You are CitySense, a city safety assistant. 
-Give clear, practical safety advice.
+                  text: `You are CitySense, a city safety assistant.
+Give clear, practical safety advice to help users travel safely.
 
 User: ${userText}`
                 }
@@ -39,21 +40,30 @@ User: ${userText}`
       }
     );
 
-    // Check HTTP errors
+    // 🔎 If API request fails
     if (!response.ok) {
-      console.error("HTTP Error:", response.status);
-      addMessage("API request failed.", "bot");
+
+      const errorData = await response.json();
+      console.error("Full API Error:", errorData);
+
+      addMessage(
+        "⚠️ API request failed. Check console.",
+        "bot"
+      );
       return;
     }
 
     const data = await response.json();
     console.log("Gemini response:", data);
 
+    // 🧠 Extract reply safely
     let botReply = "Sorry, I couldn’t process that.";
 
     if (
       data.candidates &&
       data.candidates.length > 0 &&
+      data.candidates[0].content &&
+      data.candidates[0].content.parts &&
       data.candidates[0].content.parts.length > 0
     ) {
       botReply =
@@ -63,13 +73,18 @@ User: ${userText}`
     addMessage(botReply, "bot");
 
   } catch (error) {
+
     console.error("Fetch error:", error);
-    addMessage("Connection error. Try again.", "bot");
+
+    addMessage(
+      "🌐 Connection error. Try again.",
+      "bot"
+    );
   }
 }
 
 
-// Add message to UI
+// 💬 Add message to UI
 function addMessage(text, sender) {
 
   const chatBox = document.getElementById("chat-box");
