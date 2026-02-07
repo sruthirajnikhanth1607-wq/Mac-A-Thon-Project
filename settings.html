@@ -11,6 +11,11 @@
 
 <body>
 
+<header class="settings-header">
+    <button class="back-button" onclick="goBack()">&#8592;</button>
+    <h1>Settings</h1>
+</header>
+
 <main class="settings">
     <section class="card">
         <h2>Privacy & Location</h2>
@@ -32,11 +37,14 @@
         <input type="text" placeholder="Contact phone number">
     </section>
 
-    </section class="card">
+    <section class="card">
         <label class="toggle">
             <span>Notify me when I arrive safely.</span>
             <input type="checkbox" checked>
         </label>
+    </section>
+
+    <button class="save-button" onclick="saveSettings()">Save changes</button>
 </main>
 </body>
 </html>
