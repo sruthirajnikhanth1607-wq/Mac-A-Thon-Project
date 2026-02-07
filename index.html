@@ -517,9 +517,13 @@ Description:
                 "Oshawa": { riskIndex: 0.6, incidents24h: 4 }
             };
 
+            // Load user data from localStorage (set in settings page)
+            const emergencyContacts = JSON.parse(localStorage.getItem('emergencyContacts')) || [];
+
             const user = {
-                name: "Harshini",
-                emergencyContact: "Mom"
+                name: "Harshini", // You can still hardcode this or add a name input to settings later
+                emergencyContact: emergencyContacts.length > 0 ? emergencyContacts[0].name : "Emergency Contact",
+                emergencyContactPhone: emergencyContacts.length > 0 ? emergencyContacts[0].phone : "911"
             };
 
             const welcomeMessage = document.getElementById("welcome-message");
