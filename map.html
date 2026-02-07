@@ -179,13 +179,26 @@ function getFeatureStyle(feature) {
   };
 }
 
+function applyStyleToLayer(layer, style) {
+  if (layer.setStyle) {
+    layer.setStyle(style);
+  }
+  if (layer.getLayers) {
+    layer.eachLayer(function (sublayer) {
+      applyStyleToLayer(sublayer, style);
+    });
+  }
+}
+
 function drawChoropleth(geojson) {
   if (geojsonLayer) map.removeLayer(geojsonLayer);
 
   geojsonLayer = L.geoJSON(geojson, {
     style: getFeatureStyle,
     onEachFeature: (feature, layer) => {
-      layer.setStyle(getFeatureStyle(feature));
+      const style = getFeatureStyle(feature);
+      applyStyleToLayer(layer, style);
+      layer.feature = feature;
       const assault = feature.properties.ASSAULT_RATE_2025 || 0;
       const theft = feature.properties.AUTOTHEFT_RATE_2025 || 0;
       const combined = assault + theft;
@@ -200,6 +213,11 @@ function drawChoropleth(geojson) {
       `);
     }
   }).addTo(map);
+
+  // Zoom map to show the neighbourhood data (Toronto area)
+  if (geojsonLayer.getBounds().isValid()) {
+    map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20], maxZoom: 12 });
+  }
 }
 
 // --- Destination lookup ---
