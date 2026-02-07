@@ -1,5 +1,5 @@
 // ⚠️ Hackathon demo key
-const GEMINI_API_KEY = "AIzaSyA7ERDV19SY7_gz_QZsN88KfxQ7s_PXZwk";
+const GEMINI_API_KEY = "AIzaSyBgm7h70I3iXm6plVzAljhEciuEUqAE4Fo";
 
 // Store location
 let userLocation = "Unknown";
