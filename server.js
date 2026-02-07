@@ -1,58 +1,83 @@
-require('dotenv').config(); // Load the secret key
+const fetch = require("node-fetch");
 const express = require("express");
-const app = express();
-const PORT = process.env.PORT || 3000;
+const bodyParser = require("body-parser");
 
-// Dynamic import for node-fetch to avoid version errors
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const app = express();
+const PORT = 3000;
+
+// 🔑 Gemini API key
+const GEMINI_API_KEY = "AIzaSyBgm7h70I3iXm6plVzAljhEciuEUqAE4Fo";
 
 // Middleware
-app.use(express.json()); // Built-in replacement for body-parser
-app.use(express.static(".")); // Serves your HTML files
+app.use(bodyParser.json());
+app.use(express.static(".")); // serves your HTML/CSS/JS
 
 // Chat endpoint
 app.post("/api/chat", async (req, res) => {
   const userText = req.body.text || "";
   const userLocation = req.body.location || "Unknown";
 
-  console.log(`Received: ${userText} from ${userLocation}`); // Debug log
-
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,  // Change model name here
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
-          contents: [{
-            role: "user",
-            parts: [{
-              text: `You are CitySense, an urban safety assistant. Provide practical safety advice. Assess risk when relevant.
-              \nUser location: ${userLocation}
-              \nScenario: ${userText}`
-            }]
-          }]
+          contents: [
+            {
+              parts: [
+                {
+                  text: `
+You are CitySense, an urban safety assistant.
+
+Provide practical safety advice.
+Assess risk when relevant.
+
+User location: ${userLocation}
+Scenario: ${userText}
+`
+                }
+              ]
+            }
+          ]
         })
       }
     );
 
-    const data = await response.json();
-
     if (!response.ok) {
-      console.error("Gemini API Error:", data);
-      return res.status(500).json({ reply: "⚠️ AI Service Error." });
+      return res.json({
+        reply: "⚠️ API request failed."
+      });
     }
 
-    const botReply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that.";
+    const data = await response.json();
+
+    let botReply = "Sorry, I couldn’t process that.";
+
+    if (
+      data.candidates &&
+      data.candidates.length > 0 &&
+      data.candidates[0].content &&
+      data.candidates[0].content.parts &&
+      data.candidates[0].content.parts.length > 0
+    ) {
+      botReply = data.candidates[0].content.parts[0].text;
+    }
+
     res.json({ reply: botReply });
 
   } catch (error) {
-    console.error("Server Error:", error);
-    res.status(500).json({ reply: "⚠️ Server connection failed." });
+    console.error(error);
+    res.json({
+      reply: "⚠️ Server error."
+    });
   }
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
