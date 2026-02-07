@@ -5,12 +5,14 @@ const bodyParser = require("body-parser");
 const app = express();
 const PORT = 3000;
 
-// 🔑 Your Gemini API key
-const GEMINI_API_KEY = "AIzaSyBgm7h70I3iXm6plVzAljhEciuEUqAE4Fo";
+// 🔑 Gemini API key
+const GEMINI_API_KEY = "AIzaSyCt-RE4aDUKzyyVDUtuadeKIXKATvD9STw";
 
+// Middleware
 app.use(bodyParser.json());
-app.use(express.static(".")); // serve HTML/CSS/JS files
+app.use(express.static(".")); // serves your HTML/CSS/JS
 
+// Chat endpoint
 app.post("/api/chat", async (req, res) => {
   const userText = req.body.text || "";
   const userLocation = req.body.location || "Unknown";
@@ -29,9 +31,10 @@ app.post("/api/chat", async (req, res) => {
               parts: [
                 {
                   text: `
-You are CitySense, a city safety assistant.
+You are CitySense, an urban safety assistant.
 
 Provide practical safety advice.
+Assess risk when relevant.
 
 User location: ${userLocation}
 Scenario: ${userText}
@@ -75,6 +78,7 @@ Scenario: ${userText}
   }
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
