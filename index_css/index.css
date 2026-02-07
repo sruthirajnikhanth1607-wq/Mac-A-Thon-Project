@@ -1,0 +1,534 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+    background-color: #f4f6f8;
+    color: #1f2933;
+}
+
+/* Container */
+#container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 1.5rem;
+}
+
+/* Header */
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+#title h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+#title p {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+/* Navbar */
+#navbar a {
+    margin-left: 1.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    color: #374151;
+}
+
+#navbar a:hover {
+    color: #111827;
+}
+
+/* Content */
+#content {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+}
+
+/* Cards */
+section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+section h3,
+section h2 {
+    font-size: 1rem;
+    color: #6b7280;
+}
+
+/* Metrics */
+.metric {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+}
+
+/* Subtext */
+.card-subtext {
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+/* Location */
+.location-text {
+    margin-top: 0.75rem;
+    font-size: 1rem;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.map-container {
+    margin-top: 1.5rem;
+    border-radius: 14px;
+    overflow: hidden;
+    height: 250px;
+    border: 1px solid #e5e7eb;
+}
+
+.map-container iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.location_info h2 {
+    margin-bottom: 0.5rem;
+}
+
+.location-text {
+    color: #374151;
+}
+
+.incident-list {
+    list-style: none;
+    margin-top: 1rem;
+    padding: 0;
+}
+
+.incident-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.incident-list li:first-child {
+    border-top: none;
+}
+
+.incident-list a {
+    text-decoration: none;
+    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.incident-list a:hover {
+    text-decoration: underline;
+}
+
+.incident-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.incident-note {
+    margin-top: 1rem;
+}
+
+/* Risk levels */
+.risk.low {
+    color: #047857;
+    /* green */
+}
+
+.risk.medium {
+    color: #b45309;
+    /* yellow/orange */
+}
+
+.risk.high {
+    color: #b91c1c;
+    /* red */
+}
+
+.risk {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 1.75rem;
+}
+
+.risk.low {
+    background-color: #ecfdf5;
+}
+
+.risk.medium {
+    background-color: #fffbeb;
+}
+
+.risk.high {
+    background-color: #fef2f2;
+}
+
+/* Safety Actions Panel */
+#safety-actions {
+    background: #fff7ed;
+    border-left: 6px solid #f59e0b;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+#safety-actions h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.safety-text {
+    font-size: 0.95rem;
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+.safety-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.safety-buttons button {
+    border: none;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* Button styles */
+button.primary {
+    background-color: #b91c1c;
+    color: white;
+}
+
+button.secondary {
+    background-color: #f59e0b;
+    color: white;
+}
+
+button.tertiary {
+    background-color: #e5e7eb;
+    color: #111827;
+}
+
+#custom-alert {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+#custom-alert.hidden {
+    display: none;
+}
+
+/* Custom Alert Buttons */
+#custom-alert button.primary {
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 0.6rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(185, 28, 28, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+}
+
+#custom-alert button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(185, 28, 28, 0.45);
+}
+
+#custom-alert button.primary:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 14px rgba(185, 28, 28, 0.35);
+}
+
+#custom-alert button.tertiary {
+    background: #e5e7eb;
+    color: #111827;
+    border-radius: 999px;
+    padding: 0.6rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+#custom-alert button.tertiary:hover {
+    background: #d1d5db;
+}
+
+
+/* Hidden by default */
+.hidden {
+    display: none;
+}
+
+.incident-tag {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 6px;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.incident-tag.high {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.incident-tag.medium {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.panic-button {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: #b91c1c;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.muted {
+    color: #9ca3af;
+}
+
+/* CP24 News Link */
+.cp24-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #c81e1e, #991b1b);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    width: fit-content;
+    box-shadow: 0 8px 20px rgba(200, 30, 30, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-top: 1rem;
+}
+
+.cp24-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(200, 30, 30, 0.35);
+}
+
+.external-arrow {
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+/* Optional helper text */
+.incident-note {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 14px rgba(185, 28, 28, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(185, 28, 28, 0);
+    }
+}
+
+.panic-button.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+
+/* =========================
+ MOBILE (phones ≤ 640px)
+ ========================= */
+@media (max-width: 640px) {
+
+    /* Reduce page padding */
+    #container {
+        padding: 1rem;
+    }
+
+    /* Stack header vertically */
+    #header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    /* Center title slightly */
+    #title h1 {
+        font-size: 1.6rem;
+    }
+
+    #title p {
+        font-size: 0.85rem;
+    }
+
+    /* Navbar becomes horizontal-scroll tabs */
+    #navbar {
+        width: 100%;
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+    }
+
+    #navbar a {
+        margin-left: 0;
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+
+    /* Cards tighter on mobile */
+    section {
+        padding: 1.25rem;
+        border-radius: 14px;
+    }
+
+    /* Metrics slightly smaller */
+    .metric {
+        font-size: 1.9rem;
+    }
+
+    /* Risk pill more compact */
+    .risk {
+        font-size: 1.4rem;
+    }
+
+    /* Incident list spacing */
+    .incident-list li {
+        gap: 0.35rem;
+    }
+
+    /* Incident headline */
+    .incident-list a {
+        font-size: 0.9rem;
+    }
+
+    /* Map shorter for phones */
+    .map-container {
+        height: 200px;
+    }
+
+    /* Safety action buttons full width */
+    .safety-buttons {
+        flex-direction: column;
+    }
+
+    .safety-buttons button {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 0.95rem;
+    }
+
+    /* Panic button easier to reach */
+    .panic-button {
+        width: 60px;
+        height: 60px;
+        font-size: 1.3rem;
+        bottom: 1rem;
+        right: 1rem;
+    }
+
+    .incident-actions {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .news-button {
+        text-align: center;
+        padding: 0.7rem 1rem;
+        border-radius: 12px;
+        background: #111827;
+        /* dark modern */
+        color: #ffffff;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .news-button:hover {
+        background: #1f2937;
+        transform: translateY(-1px);
+    }
+
+    .cp24-link {
+        width: 100%;
+        justify-content: center;
+    }
+
+}
+
+
+/* =========================
+ TABLET (641px – 900px)
+ ========================= */
+@media (min-width: 641px) and (max-width: 900px) {
+
+    #container {
+        padding: 1.25rem;
+    }
+
+    .metric {
+        font-size: 2rem;
+    }
+
+    .map-container {
+        height: 220px;
+    }
+}
