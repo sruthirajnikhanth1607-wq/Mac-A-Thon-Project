@@ -1,12 +1,12 @@
-const fetch = require("node-fetch");
 const express = require("express");
+const fetch = require("node-fetch");
 const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = 3000;
 
-// 🔑 Gemini API key
-const GEMINI_API_KEY = "AIzaSyBgm7h70I3iXm6plVzAljhEciuEUqAE4Fo";
+// 🔑 Gemini API key (replace with your actual key)
+const GEMINI_API_KEY = "AIzaSyBgm7h70I3iXm6plVzAljhEciuEUqAE4Fo"; 
 
 // Middleware
 app.use(bodyParser.json());
@@ -19,7 +19,7 @@ app.post("/api/chat", async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,  // Change model name here
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -64,7 +64,8 @@ Scenario: ${userText}
       data.candidates[0].content.parts &&
       data.candidates[0].content.parts.length > 0
     ) {
-      botReply = data.candidates[0].content.parts[0].text;
+      botReply =
+        data.candidates[0].content.parts[0].text;
     }
 
     res.json({ reply: botReply });

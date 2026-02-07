@@ -1,45 +1,4 @@
-// Store location
-let userLocation = "Unknown";
-
-// Get GPS location
-function getLocation() {
-  if (!navigator.geolocation) {
-    alert("Geolocation not supported.");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      userLocation =
-        pos.coords.latitude + ", " + pos.coords.longitude;
-
-      alert("Location enabled 📍");
-    },
-    () => {
-      alert("Location access denied.");
-    }
-  );
-}
-
-// Emergency keyword detector
-function detectEmergency(text) {
-  const emergencies = [
-    "breaking in",
-    "followed",
-    "stalking",
-    "harassing",
-    "attack",
-    "kidnap",
-    "unsafe right now",
-    "someone watching me"
-  ];
-
-  return emergencies.some((word) =>
-    text.toLowerCase().includes(word)
-  );
-}
-
-// Send message
+// Send message to Gemini API
 async function sendMessage() {
   const input = document.getElementById("user-input");
   const chatBox = document.getElementById("chat-box");
@@ -50,14 +9,7 @@ async function sendMessage() {
   addMessage(userText, "user");
   input.value = "";
 
-  // Emergency instant warning
-  if (detectEmergency(userText)) {
-    addMessage(
-      "🚨 If you are in immediate danger, contact emergency services now. Move to a populated or secure area.",
-      "bot"
-    );
-  }
-
+  // Send user message to backend
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
@@ -66,16 +18,16 @@ async function sendMessage() {
       },
       body: JSON.stringify({
         text: userText,
-        location: userLocation
+        location: "Unknown",  // You can modify this based on user's actual location
       })
     });
 
     const data = await response.json();
-    addMessage(data.reply, "bot");
 
+    addMessage(data.reply, "bot");
   } catch (error) {
-    console.error(error);
-    addMessage("⚠️ Connection error.", "bot");
+    console.error("Error during API request:", error);
+    addMessage("⚠️ Connection error. Try again.", "bot");
   }
 }
 
@@ -89,4 +41,22 @@ function addMessage(text, sender) {
 
   chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Get location (optional)
+function getLocation() {
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const userLocation = pos.coords.latitude + ", " + pos.coords.longitude;
+      alert("Location enabled 📍");
+    },
+    () => {
+      alert("Location access denied.");
+    }
+  );
 }

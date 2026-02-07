@@ -10,35 +10,31 @@
 
   <div class="chat-container">
 
-```
-<!-- Back Button -->
-<button class="back-btn" onclick="goHome()">← Back</button>
+    <!-- Back Button -->
+    <button class="back-btn" onclick="goHome()">← Back</button>
 
-<!-- Header -->
-<div class="chat-header">
-  🛡️ CitySense Safety Assistant
-</div>
+    <!-- Header -->
+    <div class="chat-header">
+      🛡️ CitySense Safety Assistant
+    </div>
 
-<!-- Chat Messages -->
-<div id="chat-box" class="chat-box"></div>
+    <!-- Chat Messages -->
+    <div id="chat-box" class="chat-box"></div>
 
-<!-- Input Area -->
-<div class="chat-input-area">
+    <!-- Input Area -->
+    <div class="chat-input-area">
+      <input
+        type="text"
+        id="user-input"
+        placeholder="Ask about safety..."
+        onkeypress="if(event.key==='Enter') sendMessage()"
+      >
 
-  <input
-    type="text"
-    id="user-input"
-    placeholder="Ask about safety..."
-    onkeypress="if(event.key==='Enter') sendMessage()"
-  >
+      <button onclick="sendMessage()">Send</button>
 
-  <button onclick="sendMessage()">Send</button>
-
-  <!-- Location Button -->
-  <button onclick="getLocation()">📍 Location</button>
-
-</div>
-```
+      <!-- Location Button -->
+      <button onclick="getLocation()">📍 Location</button>
+    </div>
 
   </div>
 
