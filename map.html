@@ -1,14 +1,19 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
-  <title>SafeSense – High-Risk Map</title>
+  <title>SafeSense – Risk Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <style>
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #f4f6f8;
     }
 
     #header {
@@ -24,6 +29,7 @@
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     #controls input {
@@ -39,10 +45,47 @@
       font-size: 1rem;
       border-radius: 8px;
       border: none;
-      background: #b91c1c;
+      background-color: #b91c1c;
       color: white;
       cursor: pointer;
     }
+
+    .trip-panel {
+      background: #fff;
+      margin: 0 1rem 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .trip-panel h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+    .trip-row { margin-bottom: 0.75rem; }
+    .trip-row label { display: block; font-size: 0.85rem; color: #475569; margin-bottom: 0.25rem; }
+    .trip-row input[type="number"] { width: 80px; padding: 0.4rem; border-radius: 6px; border: 1px solid #d1d5db; }
+    .contact-add { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .contact-add input { flex: 1; min-width: 100px; padding: 0.4rem; border-radius: 6px; border: 1px solid #d1d5db; }
+    .btn-add { padding: 0.4rem 0.75rem; background: #64748b; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .contact-list { list-style: none; padding: 0; margin: 0.25rem 0 0; font-size: 0.9rem; }
+    .contact-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.25rem 0; border-bottom: 1px solid #f1f5f9; }
+    .contact-list li span { color: #334155; }
+    .contact-list button { background: none; border: none; color: #b91c1c; cursor: pointer; font-size: 0.85rem; padding: 0 4px; }
+    .trip-toggle .toggle-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; }
+    .trip-toggle input[type="checkbox"] { width: 18px; height: 18px; }
+    .btn-start { padding: 0.5rem 1.25rem; background: #16a34a; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+    .btn-start:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-cancel { padding: 0.5rem 1rem; background: #64748b; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-left: 0.5rem; }
+    .trip-status { margin: 0.5rem 0 0; font-size: 0.85rem; color: #475569; min-height: 1.2em; }
+    .hidden { display: none !important; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1rem; }
+    .modal.hidden { display: none !important; }
+    .modal-content { background: #fff; border-radius: 12px; padding: 1.5rem; max-width: 400px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+    .modal-content h3 { margin: 0 0 0.5rem; font-size: 1.15rem; }
+    .modal-content p { margin: 0 0 1rem; color: #475569; font-size: 0.95rem; }
+    .modal-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .modal-actions button { padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.95rem; }
+    .btn-safe { background: #16a34a; color: #fff; }
+    .btn-help { background: #b91c1c; color: #fff; }
+    .btn-primary { background: #1e40af; color: #fff; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
 
     #map {
       width: 100%;
@@ -51,120 +94,472 @@
 
     .legend {
       background: white;
-      padding: 8px 12px;
+      padding: 10px 14px;
       font-size: 0.85rem;
+      line-height: 1.4;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    .legend-gradient {
+      width: 100%;
+      height: 12px;
+      margin: 6px 0 4px 0;
+      border-radius: 4px;
+      background: linear-gradient(to right, #dc2626, #b91c1c, #7f1d1d, #450a0a);
+    }
+
+    @media (min-width: 768px) {
+      #map {
+        height: 70vh;
+      }
+
+      #controls {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
-<body>
 
+<body>
   <div id="header">
     <h1>SafeSense</h1>
-    <p>Only showing high-risk areas</p>
+    <p>Highlighting higher-risk areas only</p>
   </div>
 
   <div id="controls">
-    <input id="destination" placeholder="Enter destination (e.g. McMaster University)">
+    <input id="destination" type="text" placeholder="Enter destination (e.g. McMaster University)">
     <button onclick="setDestination()">Set Destination</button>
+  </div>
+
+  <section id="trip-panel" class="trip-panel">
+    <h3>Trip & safety</h3>
+    <div class="trip-row">
+      <label>Expected arrival (minutes)</label>
+      <input id="expectedMinutes" type="number" min="1" max="180" value="30" placeholder="30">
+    </div>
+    <div class="trip-row">
+      <label>Share trip with</label>
+      <div class="contact-add">
+        <input id="contactName" type="text" placeholder="Name">
+        <input id="contactEmail" type="email" placeholder="Email">
+        <button type="button" class="btn-add" onclick="addContact()">Add</button>
+      </div>
+      <ul id="contactList" class="contact-list"></ul>
+    </div>
+    <div class="trip-row trip-toggle">
+      <label class="toggle-label">
+        <input type="checkbox" id="shareLocationToggle">
+        Share my location with contacts until I arrive
+      </label>
+    </div>
+    <div class="trip-row">
+      <button id="startTripBtn" class="btn-start" onclick="startTrip()" disabled>Start trip</button>
+      <button id="cancelTripBtn" class="btn-cancel hidden" onclick="cancelTrip()">Cancel trip</button>
+    </div>
+    <p id="tripStatus" class="trip-status"></p>
+  </section>
+
+  <div id="safetyModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>You haven't reached your destination</h3>
+      <p>Are you safe? If you don't respond, your contacts may be notified.</p>
+      <div class="modal-actions">
+        <button class="btn-safe" onclick="confirmSafe()">I'm safe</button>
+        <button class="btn-help" onclick="requestHelp()">I need help</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notifyModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="notifyModalTitle">Notify your contacts</h3>
+      <p id="notifyModalBody"></p>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="copyNotifyMessage()">Copy message</button>
+        <button class="btn-primary" onclick="openNotifyEmail()">Open email</button>
+        <button class="btn-secondary" onclick="closeNotifyModal()">Close</button>
+      </div>
+    </div>
   </div>
 
   <div id="map"></div>
 
+  <!-- Leaflet JS + Heat layer -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
   <script>
-    // Initialize map
-    let map = L.map("map").setView([43.6532, -79.3832], 11);
+    const map = L.map("map").setView([43.6532, -79.3832], 11); // Default Toronto
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors"
     }).addTo(map);
 
-    // ----------------------
-    // Made-up high-risk areas only
-    // ----------------------
-    const areas = [
-      { name: "Downtown Toronto", riskIndex: 0.9, polygon: [[43.64,-79.40],[43.64,-79.37],[43.67,-79.37],[43.67,-79.40]] },
-      { name: "Scarborough", riskIndex: 0.7, polygon: [[43.76,-79.30],[43.76,-79.18],[43.79,-79.18],[43.79,-79.30]] },
-      { name: "Mississauga", riskIndex: 0.6, polygon: [[43.58,-79.68],[43.58,-79.60],[43.61,-79.60],[43.61,-79.68]] },
-      { name: "Brampton", riskIndex: 0.7, polygon: [[43.67,-79.78],[43.67,-79.74],[43.70,-79.74],[43.70,-79.78]] },
-      { name: "Hamilton", riskIndex: 0.8, polygon: [[43.25,-79.90],[43.25,-79.84],[43.30,-79.84],[43.30,-79.90]] }
-    ];
+    let userMarker, destinationMarker, routeLine, heatLayer, clickLayer;
 
-    // ----------------------
-    // Gradient dark red based on risk
-    // ----------------------
-    function getDarkRedGradient(norm) {
-      // norm is 0.5 to 1.0 for high-risk only
-      return norm > 0.85 ? "#7f0000" :   // extreme
-             norm > 0.7  ? "#b91c1c" :   // very high
-             norm > 0.55 ? "#f97316" :   // high
-                           "#fca5a5";   // moderate-high
+    const DANGER_THRESHOLD = 0.4;
+    const ARRIVAL_RADIUS_M = 250;
+
+    let tripDestination = null;
+    let tripContacts = JSON.parse(localStorage.getItem("safesense_contacts") || "[]");
+    let tripStarted = false;
+    let arrivalDeadline = null;
+    let locationWatchId = null;
+    let lastKnownLatLng = null;
+    let safetyCheckShown = false;
+    let currentNotifyMessage = "";
+    let currentNotifySubject = "";
+    let currentNotifyEmails = []; // only show areas with risk >= this
+
+    const gthaCrimeData = {
+      // Downtown & Central Toronto
+      "Downtown Toronto": { riskIndex: 0.9, lat: 43.656, lon: -79.383 },
+      "Entertainment District": { riskIndex: 0.88, lat: 43.648, lon: -79.388 },
+      "Financial District": { riskIndex: 0.75, lat: 43.650, lon: -79.380 },
+      "Chinatown-Kensington": { riskIndex: 0.82, lat: 43.655, lon: -79.398 },
+      "Liberty Village": { riskIndex: 0.65, lat: 43.638, lon: -79.418 },
+      "Parkdale": { riskIndex: 0.78, lat: 43.640, lon: -79.428 },
+      "Roncesvalles": { riskIndex: 0.52, lat: 43.645, lon: -79.448 },
+      "High Park": { riskIndex: 0.45, lat: 43.652, lon: -79.462 },
+      "Bloor West Village": { riskIndex: 0.48, lat: 43.658, lon: -79.455 },
+      "Annex": { riskIndex: 0.68, lat: 43.668, lon: -79.398 },
+      "Yorkville": { riskIndex: 0.62, lat: 43.672, lon: -79.392 },
+      "Cabbagetown": { riskIndex: 0.72, lat: 43.668, lon: -79.368 },
+      "Regent Park": { riskIndex: 0.85, lat: 43.662, lon: -79.365 },
+      "Corktown": { riskIndex: 0.70, lat: 43.655, lon: -79.365 },
+      "Distillery District": { riskIndex: 0.58, lat: 43.652, lon: -79.358 },
+      "Leslieville": { riskIndex: 0.55, lat: 43.668, lon: -79.342 },
+      "Riverdale": { riskIndex: 0.52, lat: 43.675, lon: -79.352 },
+      "Danforth": { riskIndex: 0.58, lat: 43.678, lon: -79.352 },
+      "Harbourfront": { riskIndex: 0.72, lat: 43.638, lon: -79.378 },
+      "St. Lawrence": { riskIndex: 0.68, lat: 43.652, lon: -79.372 },
+      // North Toronto
+      "North Toronto": { riskIndex: 0.5, lat: 43.74, lon: -79.41 },
+      "Davisville": { riskIndex: 0.48, lat: 43.705, lon: -79.398 },
+      "Yonge-Eglinton": { riskIndex: 0.55, lat: 43.712, lon: -79.408 },
+      "Forest Hill": { riskIndex: 0.38, lat: 43.695, lon: -79.418 },
+      "Mount Pleasant": { riskIndex: 0.52, lat: 43.702, lon: -79.388 },
+      "Leaside": { riskIndex: 0.42, lat: 43.708, lon: -79.368 },
+      "Thorncliffe Park": { riskIndex: 0.62, lat: 43.718, lon: -79.355 },
+      "Flemingdon Park": { riskIndex: 0.68, lat: 43.728, lon: -79.348 },
+      // East End / Scarborough
+      "Scarborough Town Centre": { riskIndex: 0.72, lat: 43.773, lon: -79.258 },
+      "Malvern": { riskIndex: 0.75, lat: 43.808, lon: -79.228 },
+      "Rouge": { riskIndex: 0.48, lat: 43.815, lon: -79.195 },
+      "West Hill": { riskIndex: 0.70, lat: 43.758, lon: -79.218 },
+      "Guildwood": { riskIndex: 0.45, lat: 43.762, lon: -79.238 },
+      "Cliffcrest": { riskIndex: 0.52, lat: 43.712, lon: -79.248 },
+      "East York": { riskIndex: 0.55, lat: 43.70, lon: -79.32 },
+      // West End / Etobicoke
+      "Etobicoke Lakeshore": { riskIndex: 0.52, lat: 43.618, lon: -79.498 },
+      "Mimico": { riskIndex: 0.58, lat: 43.622, lon: -79.488 },
+      "New Toronto": { riskIndex: 0.62, lat: 43.608, lon: -79.512 },
+      "Long Branch": { riskIndex: 0.48, lat: 43.598, lon: -79.528 },
+      "Rexdale": { riskIndex: 0.72, lat: 43.728, lon: -79.558 },
+      "Weston": { riskIndex: 0.65, lat: 43.702, lon: -79.518 },
+      "Junction Triangle": { riskIndex: 0.68, lat: 43.662, lon: -79.445 },
+      "Dufferin Grove": { riskIndex: 0.72, lat: 43.658, lon: -79.418 },
+      // York Region
+      "Vaughan Metro": { riskIndex: 0.55, lat: 43.773, lon: -79.528 },
+      "Woodbridge": { riskIndex: 0.48, lat: 43.788, lon: -79.598 },
+      "Markham Centre": { riskIndex: 0.45, lat: 43.855, lon: -79.328 },
+      "Unionville": { riskIndex: 0.42, lat: 43.868, lon: -79.308 },
+      "Richmond Hill Central": { riskIndex: 0.48, lat: 43.882, lon: -79.438 },
+      "Thornhill": { riskIndex: 0.45, lat: 43.815, lon: -79.418 },
+      "Newmarket": { riskIndex: 0.52, lat: 44.058, lon: -79.458 },
+      "Aurora": { riskIndex: 0.42, lat: 43.998, lon: -79.468 },
+      // Peel Region
+      "Mississauga City Centre": { riskIndex: 0.62, lat: 43.588, lon: -79.642 },
+      "Streetsville": { riskIndex: 0.48, lat: 43.588, lon: -79.718 },
+      "Port Credit": { riskIndex: 0.55, lat: 43.548, lon: -79.578 },
+      "Meadowvale": { riskIndex: 0.45, lat: 43.618, lon: -79.718 },
+      "Brampton Downtown": { riskIndex: 0.78, lat: 43.688, lon: -79.768 },
+      "Bramalea": { riskIndex: 0.68, lat: 43.718, lon: -79.758 },
+      "Heart Lake": { riskIndex: 0.58, lat: 43.748, lon: -79.778 },
+      "Caledon": { riskIndex: 0.38, lat: 43.858, lon: -79.858 },
+      // Halton
+      "Oakville Downtown": { riskIndex: 0.48, lat: 43.448, lon: -79.668 },
+      "Bronte": { riskIndex: 0.42, lat: 43.408, lon: -79.708 },
+      "Burlington Centre": { riskIndex: 0.52, lat: 43.328, lon: -79.798 },
+      "Aldershot": { riskIndex: 0.58, lat: 43.298, lon: -79.848 },
+      // Durham
+      "Pickering Town Centre": { riskIndex: 0.52, lat: 43.838, lon: -79.088 },
+      "Ajax Downtown": { riskIndex: 0.55, lat: 43.858, lon: -78.998 },
+      "Whitby Brooklin": { riskIndex: 0.45, lat: 43.948, lon: -78.958 },
+      "Oshawa Downtown": { riskIndex: 0.72, lat: 43.898, lon: -78.868 },
+      "Oshawa East": { riskIndex: 0.65, lat: 43.918, lon: -78.828 },
+      "Bowmanville": { riskIndex: 0.55, lat: 43.912, lon: -78.688 },
+      // Hamilton
+      "Hamilton Downtown": { riskIndex: 0.88, lat: 43.258, lon: -79.868 },
+      "Barton Street": { riskIndex: 0.82, lat: 43.268, lon: -79.848 },
+      "Westdale": { riskIndex: 0.52, lat: 43.268, lon: -79.908 },
+      "Mountain": { riskIndex: 0.62, lat: 43.218, lon: -79.848 },
+      "Stoney Creek": { riskIndex: 0.55, lat: 43.218, lon: -79.758 },
+      "Dundas": { riskIndex: 0.48, lat: 43.268, lon: -79.958 },
+      "Ancaster": { riskIndex: 0.38, lat: 43.218, lon: -79.988 }
+    };
+
+    function initHeatAndPopups() {
+      const entries = Object.entries(gthaCrimeData).filter(([, d]) => d.riskIndex >= DANGER_THRESHOLD);
+      const heatPoints = entries.map(([, d]) => [d.lat, d.lon, 0.2 + 0.8 * d.riskIndex]);
+
+      if (heatLayer) map.removeLayer(heatLayer);
+      heatLayer = L.heatLayer(heatPoints, {
+        radius: 40,
+        blur: 28,
+        maxZoom: 17,
+        minOpacity: 0.6,
+        max: 1,
+        gradient: { 0.2: "#dc2626", 0.45: "#b91c1c", 0.7: "#7f1d1d", 1: "#450a0a" }
+      }).addTo(map);
+
+      if (clickLayer) map.removeLayer(clickLayer);
+      clickLayer = L.layerGroup();
+      entries.forEach(([area, data]) => {
+        L.circle([data.lat, data.lon], { radius: 3000, fillOpacity: 0, color: "transparent", weight: 0 })
+          .bindPopup(`<strong>${area}</strong><br>Risk: ${(data.riskIndex * 100).toFixed(0)}%`)
+          .addTo(clickLayer);
+      });
+      clickLayer.addTo(map);
+
+      const lats = entries.map(([, d]) => d.lat);
+      const lons = entries.map(([, d]) => d.lon);
+      if (lats.length) {
+        map.fitBounds([[Math.min(...lats), Math.min(...lons)], [Math.max(...lats), Math.max(...lons)]], { padding: [30, 30], maxZoom: 10 });
+      }
     }
 
-    // ----------------------
-    // Draw high-risk polygons
-    // ----------------------
-    areas.forEach(area => {
-      const color = getDarkRedGradient(area.riskIndex);
-      L.polygon(area.polygon, {
-        color: "#374151",
-        fillColor: color,
-        fillOpacity: 0.7,
-        weight: 1
-      }).addTo(map)
-        .bindPopup(`<strong>${area.name}</strong><br>Risk Index: ${(area.riskIndex*100).toFixed(0)}%`);
-    });
+    initHeatAndPopups();
+    renderContactList();
+    updateStartTripButton();
 
-    // ----------------------
-    // Legend
-    // ----------------------
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        lastKnownLatLng = { lat, lon };
+        userMarker = L.marker([lat, lon]).addTo(map).bindPopup("You are here").openPopup();
+        map.setView([lat, lon], 12);
+        updateStartTripButton();
+      }, () => {});
+    }
+
+    function updateStartTripButton() {
+      const btn = document.getElementById("startTripBtn");
+      const cancelBtn = document.getElementById("cancelTripBtn");
+      if (!btn) return;
+      const canStart = tripDestination && !tripStarted;
+      btn.disabled = !canStart;
+      if (cancelBtn) cancelBtn.classList.toggle("hidden", !tripStarted);
+    }
+
+    function renderContactList() {
+      const ul = document.getElementById("contactList");
+      if (!ul) return;
+      ul.innerHTML = tripContacts.map((c, i) =>
+        `<li><span>${escapeHtml(c.name)} — ${escapeHtml(c.email)}</span> <button type="button" onclick="removeContact(${i})">Remove</button></li>`
+      ).join("");
+    }
+    function escapeHtml(s) {
+      const div = document.createElement("div");
+      div.textContent = s;
+      return div.innerHTML;
+    }
+    function addContact() {
+      const name = document.getElementById("contactName").value.trim();
+      const email = document.getElementById("contactEmail").value.trim();
+      if (!name || !email) return;
+      tripContacts.push({ name, email });
+      localStorage.setItem("safesense_contacts", JSON.stringify(tripContacts));
+      document.getElementById("contactName").value = "";
+      document.getElementById("contactEmail").value = "";
+      renderContactList();
+    }
+    function removeContact(i) {
+      tripContacts.splice(i, 1);
+      localStorage.setItem("safesense_contacts", JSON.stringify(tripContacts));
+      renderContactList();
+    }
+
+    async function setDestination() {
+      const place = document.getElementById("destination").value;
+      if (!place) return;
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`);
+        const data = await res.json();
+        if (!data.length) throw new Error("Not found");
+
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        tripDestination = { lat, lon, label: place };
+
+        if (destinationMarker) map.removeLayer(destinationMarker);
+        destinationMarker = L.marker([lat, lon]).addTo(map).bindPopup("Destination: " + place).openPopup();
+
+        if (routeLine && userMarker) map.removeLayer(routeLine);
+        if (userMarker) {
+          routeLine = L.polyline([userMarker.getLatLng(), [lat, lon]], { dashArray: "5,5" }).addTo(map);
+          map.fitBounds(routeLine.getBounds());
+        } else if (lastKnownLatLng) {
+          routeLine = L.polyline([[lastKnownLatLng.lat, lastKnownLatLng.lon], [lat, lon]], { dashArray: "5,5" }).addTo(map);
+          map.fitBounds(routeLine.getBounds());
+        }
+        updateStartTripButton();
+      } catch (err) {
+        alert("Destination lookup failed. Try again.");
+        console.error(err);
+      }
+    }
+
+    function startTrip() {
+      if (!tripDestination || tripStarted) return;
+      const minutes = parseInt(document.getElementById("expectedMinutes").value, 10) || 30;
+      const shareOn = document.getElementById("shareLocationToggle").checked;
+      tripStarted = true;
+      safetyCheckShown = false;
+      arrivalDeadline = Date.now() + minutes * 60 * 1000;
+      updateStartTripButton();
+      document.getElementById("startTripBtn").classList.add("hidden");
+      document.getElementById("cancelTripBtn").classList.remove("hidden");
+      const deadlineDate = new Date(arrivalDeadline);
+      const statusEl = document.getElementById("tripStatus");
+      statusEl.textContent = `Trip active. Arrive by ${deadlineDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}${shareOn && tripContacts.length ? ". Sharing location with contacts." : ""}`;
+      statusEl.style.color = "#16a34a";
+
+      function checkArrivalAndTimeout(pos) {
+        if (!tripDestination || !tripStarted) return;
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        lastKnownLatLng = { lat, lon };
+        if (!userMarker) {
+          userMarker = L.marker([lat, lon]).addTo(map).bindPopup("You are here");
+        } else {
+          userMarker.setLatLng([lat, lon]);
+        }
+
+        const dest = tripDestination;
+        const distM = getDistanceM(lat, lon, dest.lat, dest.lon);
+        if (distM <= ARRIVAL_RADIUS_M) {
+          endTrip(true);
+          return;
+        }
+        if (Date.now() >= arrivalDeadline && !safetyCheckShown) {
+          safetyCheckShown = true;
+          document.getElementById("safetyModal").classList.remove("hidden");
+        }
+      }
+
+      locationWatchId = navigator.geolocation.watchPosition(checkArrivalAndTimeout, () => {}, { enableHighAccuracy: true, maximumAge: 10000 });
+    }
+
+    function getDistanceM(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function endTrip(arrived) {
+      if (locationWatchId != null) {
+        navigator.geolocation.clearWatch(locationWatchId);
+        locationWatchId = null;
+      }
+      tripStarted = false;
+      arrivalDeadline = null;
+      document.getElementById("startTripBtn").classList.remove("hidden");
+      document.getElementById("cancelTripBtn").classList.add("hidden");
+      const statusEl = document.getElementById("tripStatus");
+      if (arrived) {
+        statusEl.textContent = "You've arrived! Trip complete.";
+        statusEl.style.color = "#16a34a";
+        const shareOn = document.getElementById("shareLocationToggle").checked;
+        if (shareOn && tripContacts.length) {
+          currentNotifySubject = "SafeSense: I've arrived safely";
+          currentNotifyMessage = "I've reached my destination safely.";
+          currentNotifyEmails = tripContacts.map(c => c.email);
+          document.getElementById("notifyModalTitle").textContent = "Notify your contacts";
+          document.getElementById("notifyModalBody").textContent = "Copy the message or open email to let your contacts know you've arrived.";
+          document.getElementById("notifyModal").classList.remove("hidden");
+        }
+      } else {
+        statusEl.textContent = "";
+      }
+      updateStartTripButton();
+    }
+
+    function cancelTrip() {
+      if (locationWatchId != null) {
+        navigator.geolocation.clearWatch(locationWatchId);
+        locationWatchId = null;
+      }
+      tripStarted = false;
+      arrivalDeadline = null;
+      safetyCheckShown = false;
+      document.getElementById("startTripBtn").classList.remove("hidden");
+      document.getElementById("cancelTripBtn").classList.add("hidden");
+      document.getElementById("tripStatus").textContent = "";
+      updateStartTripButton();
+    }
+
+    function confirmSafe() {
+      document.getElementById("safetyModal").classList.add("hidden");
+      currentNotifySubject = "SafeSense: I'm safe";
+      currentNotifyMessage = "I haven't reached my destination yet but I'm safe. No need to worry.";
+      currentNotifyEmails = tripContacts.map(c => c.email);
+      document.getElementById("notifyModalTitle").textContent = "Notify your contacts you're safe";
+      document.getElementById("notifyModalBody").textContent = "Send this message to your contacts so they know you're okay.";
+      document.getElementById("notifyModal").classList.remove("hidden");
+      endTrip(false);
+    }
+
+    function requestHelp() {
+      document.getElementById("safetyModal").classList.add("hidden");
+      const loc = lastKnownLatLng ? `${lastKnownLatLng.lat},${lastKnownLatLng.lon}` : "unknown";
+      const mapLink = `https://www.google.com/maps?q=${loc}`;
+      currentNotifySubject = "SafeSense: I may need help";
+      currentNotifyMessage = `I may be in danger. I haven't reached my destination. Last known location: ${loc}\nMap: ${mapLink}\nPlease check on me.`;
+      currentNotifyEmails = tripContacts.map(c => c.email);
+      document.getElementById("notifyModalTitle").textContent = "Notify your emergency contacts";
+      document.getElementById("notifyModalBody").textContent = "Copy the message or open email to send your last location to your contacts.";
+      document.getElementById("notifyModal").classList.remove("hidden");
+      endTrip(false);
+    }
+
+    function copyNotifyMessage() {
+      const text = currentNotifySubject + "\n\n" + currentNotifyMessage;
+      navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard.")).catch(() => prompt("Copy this message:", text));
+    }
+
+    function openNotifyEmail() {
+      const to = currentNotifyEmails.join(",");
+      const subject = encodeURIComponent(currentNotifySubject);
+      const body = encodeURIComponent(currentNotifyMessage);
+      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+    }
+
+    function closeNotifyModal() {
+      document.getElementById("notifyModal").classList.add("hidden");
+    }
+
     const legend = L.control({ position: "bottomright" });
-    legend.onAdd = () => {
-      const div = L.DomUtil.create("div","legend");
+    legend.onAdd = function () {
+      const div = L.DomUtil.create("div", "legend");
       div.innerHTML = `
-        <strong>High-Risk Areas</strong><br>
-        <i style="background:#fca5a5;width:18px;display:inline-block"></i> Moderate-High<br>
-        <i style="background:#f97316;width:18px;display:inline-block"></i> High<br>
-        <i style="background:#b91c1c;width:18px;display:inline-block"></i> Very High<br>
-        <i style="background:#7f0000;width:18px;display:inline-block"></i> Extreme
+        <strong>Danger level</strong>
+        <div class="legend-gradient"></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#64748b;">
+          <span>Less</span>
+          <span>More</span>
+        </div>
+        <div style="font-size:0.7rem;color:#94a3b8;margin-top:4px;">Safe areas not shown · Click area for details</div>
       `;
       return div;
     };
     legend.addTo(map);
 
-    // ----------------------
-    // User & destination
-    // ----------------------
-    let userMarker, destinationMarker, routeLine;
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(p => {
-        const lat = p.coords.latitude;
-        const lon = p.coords.longitude;
-        userMarker = L.marker([lat, lon]).addTo(map).bindPopup("You are here").openPopup();
-        map.setView([lat, lon], 12);
-      });
-    }
-
-    async function setDestination() {
-      const query = document.getElementById("destination").value;
-      if (!query || !userMarker) return;
-
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`);
-      const loc = await res.json();
-      if (!loc.length) return alert("Not found");
-
-      const [lat, lon] = [loc[0].lat, loc[0].lon];
-
-      if (destinationMarker) map.removeLayer(destinationMarker);
-      destinationMarker = L.marker([lat, lon]).addTo(map).bindPopup("Destination").openPopup();
-
-      if (routeLine) map.removeLayer(routeLine);
-      routeLine = L.polyline([userMarker.getLatLng(), [lat, lon]], { dashArray: "5,5" }).addTo(map);
-
-      map.fitBounds(routeLine.getBounds());
-    }
   </script>
-
 </body>
+
 </html>
