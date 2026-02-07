@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>SafeSense – Track Location</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #f4f6f8;
+    }
+
+    #header {
+      background: #1f2933;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    #header h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.5rem;
+    }
+
+    #header p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+
+    #info-panel {
+      background: white;
+      margin: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-weight: 500;
+      color: #475569;
+      font-size: 0.9rem;
+    }
+
+    .info-value {
+      color: #1f2937;
+      font-size: 0.9rem;
+      text-align: right;
+    }
+
+    #status-banner {
+      padding: 0.75rem 1rem;
+      text-align: center;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .status-active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-ended {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-loading {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    #map {
+      width: 100%;
+      height: 60vh;
+    }
+
+    .last-update {
+      padding: 0.5rem 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #64748b;
+      background: #f8fafc;
+    }
+
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .error-container {
+      max-width: 500px;
+      margin: 3rem auto;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .error-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      #map {
+        height: 70vh;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="header">
+    <h1>SafeSense</h1>
+    <p>Live Trip Tracking</p>
+  </div>
+
+  <div id="status-banner" class="status-loading">
+    Loading trip information...
+  </div>
+
+  <div id="content">
+    <div id="info-panel" style="display: none;">
+      <div class="info-row">
+        <span class="info-label">Destination</span>
+        <span class="info-value" id="destinationName">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Expected Arrival</span>
+        <span class="info-value" id="expectedArrival">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Trip Started</span>
+        <span class="info-value" id="tripStarted">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Status</span>
+        <span class="info-value" id="tripStatusText">-</span>
+      </div>
+    </div>
+
+    <div id="map-container" style="display: none;">
+      <div id="map"></div>
+      <div class="last-update">
+        Last updated: <span id="lastUpdate" class="pulse">Just now</span>
+      </div>
+    </div>
+
+    <div id="error-container" style="display: none;" class="error-container">
+      <div class="error-icon">⚠️</div>
+      <h2 style="color: #1f2937; margin: 0 0 0.5rem;">Trip Not Found</h2>
+      <p style="color: #64748b; margin: 0;">This tracking link is invalid or the trip has expired.</p>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    let map;
+    let userMarker;
+    let destinationMarker;
+    let routeLine;
+    let sessionId = null;
+    let updateInterval = null;
+
+    // Get session ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    sessionId = urlParams.get('session');
+
+    if (!sessionId) {
+      showError();
+    } else {
+      loadTripData();
+      // Auto-refresh every 5 seconds
+      updateInterval = setInterval(loadTripData, 5000);
+    }
+
+    function loadTripData() {
+      try {
+        // In production, this would fetch from backend API
+        const sessionData = JSON.parse(localStorage.getItem(`session_${sessionId}`) || 'null');
+
+        if (!sessionData) {
+          showError();
+          if (updateInterval) clearInterval(updateInterval);
+          return;
+        }
+
+        // Update UI with session data
+        updateUI(sessionData);
+
+        // Initialize or update map
+        if (!map) {
+          initMap(sessionData);
+        } else {
+          updateMap(sessionData);
+        }
+
+      } catch (error) {
+        console.error("Error loading trip data:", error);
+        showError();
+        if (updateInterval) clearInterval(updateInterval);
+      }
+    }
+
+    function updateUI(data) {
+      const statusBanner = document.getElementById('status-banner');
+      const infoPanel = document.getElementById('info-panel');
+      const mapContainer = document.getElementById('map-container');
+
+      // Show panels
+      infoPanel.style.display = 'block';
+      mapContainer.style.display = 'block';
+
+      // Update status banner
+      if (data.status === 'active') {
+        statusBanner.textContent = '🟢 Trip in progress';
+        statusBanner.className = 'status-active';
+      } else {
+        statusBanner.textContent = '⚫ Trip ended';
+        statusBanner.className = 'status-ended';
+        if (updateInterval) {
+          clearInterval(updateInterval);
+          updateInterval = null;
+        }
+      }
+
+      // Update info panel
+      document.getElementById('destinationName').textContent = data.destination?.label || 'Unknown';
+      
+      const deadlineDate = new Date(data.deadline);
+      document.getElementById('expectedArrival').textContent = deadlineDate.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+
+      const startDate = new Date(data.startTime);
+      document.getElementById('tripStarted').textContent = startDate.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+
+      const now = Date.now();
+      if (data.status === 'ended') {
+        document.getElementById('tripStatusText').textContent = 'Arrived';
+        document.getElementById('tripStatusText').style.color = '#16a34a';
+      } else if (now > data.deadline) {
+        document.getElementById('tripStatusText').textContent = 'Overdue';
+        document.getElementById('tripStatusText').style.color = '#dc2626';
+      } else {
+        const minutesLeft = Math.ceil((data.deadline - now) / 60000);
+        document.getElementById('tripStatusText').textContent = `${minutesLeft} min remaining`;
+        document.getElementById('tripStatusText').style.color = '#0284c7';
+      }
+
+      // Update last update time
+      const lastUpdateTime = new Date(data.lastUpdate);
+      const secondsAgo = Math.floor((Date.now() - data.lastUpdate) / 1000);
+      
+      let updateText;
+      if (secondsAgo < 10) {
+        updateText = 'Just now';
+      } else if (secondsAgo < 60) {
+        updateText = `${secondsAgo} seconds ago`;
+      } else {
+        const minutesAgo = Math.floor(secondsAgo / 60);
+        updateText = `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`;
+      }
+      
+      document.getElementById('lastUpdate').textContent = updateText;
+    }
+
+    function initMap(data) {
+      // Initialize map
+      const startLat = data.currentLocation?.lat || data.destination?.lat || 43.6532;
+      const startLon = data.currentLocation?.lon || data.destination?.lon || -79.3832;
+
+      map = L.map("map").setView([startLat, startLon], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors"
+      }).addTo(map);
+
+      // Add markers
+      if (data.currentLocation) {
+        userMarker = L.marker([data.currentLocation.lat, data.currentLocation.lon], {
+          icon: L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+          })
+        }).addTo(map).bindPopup("Current location").openPopup();
+      }
+
+      if (data.destination) {
+        destinationMarker = L.marker([data.destination.lat, data.destination.lon], {
+          icon: L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+          })
+        }).addTo(map).bindPopup("Destination: " + data.destination.label);
+      }
+
+      // Draw route if both markers exist
+      if (userMarker && destinationMarker) {
+        routeLine = L.polyline(
+          [userMarker.getLatLng(), destinationMarker.getLatLng()],
+          {
+            color: '#3b82f6',
+            weight: 3,
+            opacity: 0.7,
+            dashArray: '10, 10'
+          }
+        ).addTo(map);
+
+        map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+      }
+    }
+
+    function updateMap(data) {
+      if (!data.currentLocation) return;
+
+      // Update user marker position
+      if (userMarker) {
+        userMarker.setLatLng([data.currentLocation.lat, data.currentLocation.lon]);
+      } else {
+        userMarker = L.marker([data.currentLocation.lat, data.currentLocation.lon], {
+          icon: L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+          })
+        }).addTo(map).bindPopup("Current location");
+      }
+
+      // Update route line
+      if (routeLine && destinationMarker) {
+        routeLine.setLatLngs([
+          userMarker.getLatLng(), 
+          destinationMarker.getLatLng()
+        ]);
+      } else if (destinationMarker && !routeLine) {
+        routeLine = L.polyline(
+          [userMarker.getLatLng(), destinationMarker.getLatLng()],
+          {
+            color: '#3b82f6',
+            weight: 3,
+            opacity: 0.7,
+            dashArray: '10, 10'
+          }
+        ).addTo(map);
+      }
+
+      // Optionally re-center map to show both markers
+      if (routeLine) {
+        map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+      }
+    }
+
+    function showError() {
+      document.getElementById('status-banner').style.display = 'none';
+      document.getElementById('info-panel').style.display = 'none';
+      document.getElementById('map-container').style.display = 'none';
+      document.getElementById('error-container').style.display = 'block';
+    }
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
+    });
+  </script>
+</body>
+
+</html>

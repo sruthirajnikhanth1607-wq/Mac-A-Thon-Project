@@ -214,7 +214,7 @@
       <label>Share trip with</label>
       <div class="contact-add">
         <input id="contactName" type="text" placeholder="Name">
-        <input id="contactEmail" type="email" placeholder="Email">
+        <input id="contactPhone" type="tel" placeholder="Phone number">
         <button type="button" class="btn-add" onclick="addContact()">Add</button>
       </div>
       <ul id="contactList" class="contact-list"></ul>
@@ -230,6 +230,16 @@
       <button id="cancelTripBtn" class="btn-cancel hidden" onclick="cancelTrip()">Cancel trip</button>
     </div>
     <p id="tripStatus" class="trip-status"></p>
+    <div id="shareSection" class="hidden" style="margin-top: 1rem; padding: 0.75rem; background: #f0fdf4; border-radius: 6px; border: 1px solid #86efac;">
+      <div style="font-size: 0.9rem; color: #166534; margin-bottom: 0.5rem;">
+        <strong>📍 Live location sharing active</strong>
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <input id="shareLink" type="text" readonly style="flex: 1; min-width: 200px; padding: 0.4rem; border-radius: 6px; border: 1px solid #86efac; background: white; font-size: 0.85rem;">
+        <button onclick="copyShareLink()" style="padding: 0.4rem 0.75rem; background: #16a34a; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Copy Link</button>
+        <button onclick="sendShareLinks()" style="padding: 0.4rem 0.75rem; background: #0284c7; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Send to Contacts</button>
+      </div>
+    </div>
   </section>
 
   <div id="safetyModal" class="modal hidden">
@@ -249,7 +259,7 @@
       <p id="notifyModalBody"></p>
       <div class="modal-actions">
         <button class="btn-primary" onclick="copyNotifyMessage()">Copy message</button>
-        <button class="btn-primary" onclick="openNotifyEmail()">Open email</button>
+        <button class="btn-primary" onclick="openNotifySMS()">Open Messages</button>
         <button class="btn-secondary" onclick="closeNotifyModal()">Close</button>
       </div>
     </div>
@@ -282,9 +292,11 @@
     let safetyCheckShown = false;
     let currentNotifyMessage = "";
     let currentNotifySubject = "";
-    let currentNotifyEmails = [];
+    let currentNotifyPhones = [];
     let searchTimeout = null;
     let currentSuggestions = [];
+    let currentSessionId = null;
+    let locationUpdateInterval = null;
 
     const gthaCrimeData = {
       // Downtown & Central Toronto
@@ -704,7 +716,7 @@
       const ul = document.getElementById("contactList");
       if (!ul) return;
       ul.innerHTML = tripContacts.map((c, i) =>
-        `<li><span>${escapeHtml(c.name)} — ${escapeHtml(c.email)}</span> <button type="button" onclick="removeContact(${i})">Remove</button></li>`
+        `<li><span>${escapeHtml(c.name)} — ${escapeHtml(c.phone)}</span> <button type="button" onclick="removeContact(${i})">Remove</button></li>`
       ).join("");
     }
 
@@ -716,12 +728,20 @@
 
     function addContact() {
       const name = document.getElementById("contactName").value.trim();
-      const email = document.getElementById("contactEmail").value.trim();
-      if (!name || !email) return;
-      tripContacts.push({ name, email });
+      const phone = document.getElementById("contactPhone").value.trim();
+      if (!name || !phone) return;
+      
+      // Basic phone validation
+      const phoneDigits = phone.replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        alert("Please enter a valid phone number (at least 10 digits)");
+        return;
+      }
+      
+      tripContacts.push({ name, phone });
       localStorage.setItem("safesense_contacts", JSON.stringify(tripContacts));
       document.getElementById("contactName").value = "";
-      document.getElementById("contactEmail").value = "";
+      document.getElementById("contactPhone").value = "";
       renderContactList();
     }
 
@@ -735,26 +755,43 @@
       if (!tripDestination || tripStarted) return;
       const minutes = parseInt(document.getElementById("expectedMinutes").value, 10) || 30;
       const shareOn = document.getElementById("shareLocationToggle").checked;
+      
       tripStarted = true;
       safetyCheckShown = false;
       arrivalDeadline = Date.now() + minutes * 60 * 1000;
+      
+      // Generate unique session ID
+      currentSessionId = 'trip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
       updateStartTripButton();
       document.getElementById("startTripBtn").classList.add("hidden");
       document.getElementById("cancelTripBtn").classList.remove("hidden");
+      
       const deadlineDate = new Date(arrivalDeadline);
       const statusEl = document.getElementById("tripStatus");
-      statusEl.textContent = `Trip active. Arrive by ${deadlineDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}${shareOn && tripContacts.length ? ". Sharing location with contacts." : ""}`;
+      statusEl.textContent = `Trip active. Arrive by ${deadlineDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
       statusEl.style.color = "#16a34a";
+
+      // Initialize live sharing if enabled
+      if (shareOn && tripContacts.length > 0) {
+        initializeLiveSharing();
+      }
 
       function checkArrivalAndTimeout(pos) {
         if (!tripDestination || !tripStarted) return;
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
         lastKnownLatLng = { lat, lon };
+        
         if (!userMarker) {
           userMarker = L.marker([lat, lon]).addTo(map).bindPopup("You are here");
         } else {
           userMarker.setLatLng([lat, lon]);
+        }
+
+        // Update shared location if sharing is active
+        if (shareOn && currentSessionId) {
+          updateSharedLocation(lat, lon);
         }
 
         const dest = tripDestination;
@@ -785,6 +822,10 @@
         navigator.geolocation.clearWatch(locationWatchId);
         locationWatchId = null;
       }
+      
+      // Stop live sharing
+      stopLiveSharing();
+      
       tripStarted = false;
       arrivalDeadline = null;
       document.getElementById("startTripBtn").classList.remove("hidden");
@@ -797,9 +838,9 @@
         if (shareOn && tripContacts.length) {
           currentNotifySubject = "SafeSense: I've arrived safely";
           currentNotifyMessage = "I've reached my destination safely.";
-          currentNotifyEmails = tripContacts.map(c => c.email);
+          currentNotifyPhones = tripContacts.map(c => c.phone);
           document.getElementById("notifyModalTitle").textContent = "Notify your contacts";
-          document.getElementById("notifyModalBody").textContent = "Copy the message or open email to let your contacts know you've arrived.";
+          document.getElementById("notifyModalBody").textContent = "Copy the message or open Messages to let your contacts know you've arrived.";
           document.getElementById("notifyModal").classList.remove("hidden");
         }
       } else {
@@ -813,6 +854,10 @@
         navigator.geolocation.clearWatch(locationWatchId);
         locationWatchId = null;
       }
+      
+      // Stop live sharing
+      stopLiveSharing();
+      
       tripStarted = false;
       arrivalDeadline = null;
       safetyCheckShown = false;
@@ -826,7 +871,7 @@
       document.getElementById("safetyModal").classList.add("hidden");
       currentNotifySubject = "SafeSense: I'm safe";
       currentNotifyMessage = "I haven't reached my destination yet but I'm safe. No need to worry.";
-      currentNotifyEmails = tripContacts.map(c => c.email);
+      currentNotifyPhones = tripContacts.map(c => c.phone);
       document.getElementById("notifyModalTitle").textContent = "Notify your contacts you're safe";
       document.getElementById("notifyModalBody").textContent = "Send this message to your contacts so they know you're okay.";
       document.getElementById("notifyModal").classList.remove("hidden");
@@ -839,9 +884,9 @@
       const mapLink = `https://www.google.com/maps?q=${loc}`;
       currentNotifySubject = "SafeSense: I may need help";
       currentNotifyMessage = `I may be in danger. I haven't reached my destination. Last known location: ${loc}\nMap: ${mapLink}\nPlease check on me.`;
-      currentNotifyEmails = tripContacts.map(c => c.email);
+      currentNotifyPhones = tripContacts.map(c => c.phone);
       document.getElementById("notifyModalTitle").textContent = "Notify your emergency contacts";
-      document.getElementById("notifyModalBody").textContent = "Copy the message or open email to send your last location to your contacts.";
+      document.getElementById("notifyModalBody").textContent = "Copy the message or open Messages to send your last location to your contacts.";
       document.getElementById("notifyModal").classList.remove("hidden");
       endTrip(false);
     }
@@ -851,15 +896,123 @@
       navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard.")).catch(() => prompt("Copy this message:", text));
     }
 
-    function openNotifyEmail() {
-      const to = currentNotifyEmails.join(",");
-      const subject = encodeURIComponent(currentNotifySubject);
+    function openNotifySMS() {
+      // Format phone numbers (remove non-digits for SMS URI)
+      const phones = currentNotifyPhones.map(p => p.replace(/\D/g, ''));
+      
+      // SMS URI format
+      // Note: Multiple recipients work on iOS, Android may only use first number
       const body = encodeURIComponent(currentNotifyMessage);
-      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+      
+      if (phones.length === 1) {
+        // Single recipient - most compatible
+        window.location.href = `sms:${phones[0]}?body=${body}`;
+      } else {
+        // Multiple recipients - iOS style (comma-separated)
+        // Android users may need to send multiple messages
+        window.location.href = `sms:${phones.join(',')}?body=${body}`;
+      }
     }
 
     function closeNotifyModal() {
       document.getElementById("notifyModal").classList.add("hidden");
+    }
+
+    // ============================================
+    // LIVE LOCATION SHARING
+    // ============================================
+
+    function initializeLiveSharing() {
+      // Create initial session data
+      const sessionData = {
+        sessionId: currentSessionId,
+        userId: 'user_' + Date.now(), // In production, use actual user ID
+        destination: tripDestination,
+        startTime: Date.now(),
+        deadline: arrivalDeadline,
+        contacts: tripContacts,
+        lastUpdate: Date.now(),
+        currentLocation: lastKnownLatLng,
+        status: 'active'
+      };
+
+      // Store in localStorage (simulating backend storage)
+      localStorage.setItem(`session_${currentSessionId}`, JSON.stringify(sessionData));
+
+      // Generate shareable link
+      const baseUrl = window.location.origin + window.location.pathname.replace('map-sophisticated-search.html', '');
+      const shareUrl = `${baseUrl}track.html?session=${currentSessionId}`;
+      
+      // Display share section
+      document.getElementById("shareLink").value = shareUrl;
+      document.getElementById("shareSection").classList.remove("hidden");
+
+      console.log("Live sharing initialized:", currentSessionId);
+    }
+
+    function updateSharedLocation(lat, lon) {
+      if (!currentSessionId) return;
+
+      try {
+        const sessionData = JSON.parse(localStorage.getItem(`session_${currentSessionId}`) || '{}');
+        
+        sessionData.currentLocation = { lat, lon };
+        sessionData.lastUpdate = Date.now();
+        
+        localStorage.setItem(`session_${currentSessionId}`, JSON.stringify(sessionData));
+        
+        // In production, this would send to backend via WebSocket or API
+        console.log("Location updated:", lat, lon);
+      } catch (error) {
+        console.error("Error updating location:", error);
+      }
+    }
+
+    function stopLiveSharing() {
+      if (!currentSessionId) return;
+
+      try {
+        const sessionData = JSON.parse(localStorage.getItem(`session_${currentSessionId}`) || '{}');
+        sessionData.status = 'ended';
+        sessionData.endTime = Date.now();
+        localStorage.setItem(`session_${currentSessionId}`, JSON.stringify(sessionData));
+        
+        // Hide share section
+        document.getElementById("shareSection").classList.add("hidden");
+        
+        currentSessionId = null;
+        
+        console.log("Live sharing stopped");
+      } catch (error) {
+        console.error("Error stopping sharing:", error);
+      }
+    }
+
+    function copyShareLink() {
+      const linkInput = document.getElementById("shareLink");
+      linkInput.select();
+      linkInput.setSelectionRange(0, 99999); // For mobile
+      
+      navigator.clipboard.writeText(linkInput.value)
+        .then(() => alert("Link copied! Share this with your contacts so they can track your location."))
+        .catch(() => {
+          // Fallback
+          prompt("Copy this link:", linkInput.value);
+        });
+    }
+
+    function sendShareLinks() {
+      const shareUrl = document.getElementById("shareLink").value;
+      const message = `I'm on my way! Track my live location here: ${shareUrl}\n\n(SafeSense trip tracking)`;
+      const phones = tripContacts.map(c => c.phone.replace(/\D/g, ''));
+      
+      const body = encodeURIComponent(message);
+      
+      if (phones.length === 1) {
+        window.location.href = `sms:${phones[0]}?body=${body}`;
+      } else {
+        window.location.href = `sms:${phones.join(',')}?body=${body}`;
+      }
     }
 
     const legend = L.control({ position: "bottomright" });
