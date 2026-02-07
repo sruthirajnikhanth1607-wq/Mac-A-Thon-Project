@@ -296,6 +296,154 @@ Description:
             cursor: pointer;
         }
     </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            /* -----------------------------
+               1. USER INFO (mock for now)
+               ----------------------------- */
+            const user = {
+                name: "Harshini", // later: pull from login/session
+                emergencyContact: "Mom"
+            };
+
+            const welcomeMessage = document.getElementById("welcome-message");
+            welcomeMessage.textContent = `Welcome back, ${user.name}`;
+
+
+            /* -----------------------------
+               2. LOCATION (with consent)
+               ----------------------------- */
+            const locationText = document.querySelector(".location-text");
+            const mapFrame = document.querySelector(".map-container iframe");
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+
+                        // Update map
+                        mapFrame.src = `https://www.google.com/maps?q=${lat},${lon}&output=embed`;
+
+                        // OPTIONAL: Reverse geocoding would go here (API later)
+                        locationText.innerHTML = `
+                    📍 Your current location <br>
+                    Safety Score: <strong>92 / 100</strong>
+                `;
+                    },
+                    () => {
+                        locationText.textContent = "📍 Location access denied.";
+                    }
+                );
+            }
+
+
+            /* -----------------------------
+               3. RISK LEVEL HANDLING
+               ----------------------------- */
+            const riskLevelElement = document.getElementById("risk-level");
+            const safetyActionsPanel = document.getElementById("safety-actions");
+
+            // Possible values: "low", "medium", "high"
+            const currentRiskLevel = "high"; // ← simulate backend data
+
+            function updateRisk(level) {
+                riskLevelElement.classList.remove("low", "medium", "high");
+                riskLevelElement.classList.add(level);
+
+                if (level === "low") {
+                    riskLevelElement.textContent = "Low";
+                    safetyActionsPanel.classList.add("hidden");
+                }
+
+                if (level === "medium") {
+                    riskLevelElement.textContent = "Medium";
+                    safetyActionsPanel.classList.remove("hidden");
+                }
+
+                if (level === "high") {
+                    riskLevelElement.textContent = "High";
+                    safetyActionsPanel.classList.remove("hidden");
+                }
+            }
+
+            updateRisk(currentRiskLevel);
+
+
+            /* -----------------------------
+               4. PANIC BUTTON
+               ----------------------------- */
+            const panicButton = document.querySelector(".panic-button");
+
+            panicButton.addEventListener("click", () => {
+                const confirmCall = confirm(
+                    "This will contact emergency services immediately. Continue?"
+                );
+
+                if (confirmCall) {
+                    // On mobile this would trigger a real call
+                    window.location.href = "tel:911";
+                }
+            });
+
+
+            /* -----------------------------
+               5. SAFETY ACTION BUTTONS
+               ----------------------------- */
+            document.querySelector(".primary").addEventListener("click", () => {
+                alert("Emergency services have been contacted.");
+            });
+
+            document.querySelector(".secondary").addEventListener("click", () => {
+                alert(`Emergency contact (${user.emergencyContact}) has been notified.`);
+            });
+
+            document.querySelector(".tertiary").addEventListener("click", () => {
+                safetyActionsPanel.classList.add("hidden");
+                updateRisk("low");
+            });
+
+
+            /* -----------------------------
+               6. INCIDENT DATA (mock news)
+               ----------------------------- */
+            // Later: replace with real API (NewsAPI, GNews, custom backend)
+            const incidents = [
+                {
+                    title: "Assault reported near Yonge–Dundas Square",
+                    risk: "high",
+                    time: "3 hours ago",
+                    link: "#"
+                },
+                {
+                    title: "Police investigating late-night robbery downtown",
+                    risk: "high",
+                    time: "11 hours ago",
+                    link: "#"
+                }
+            ];
+
+            const incidentList = document.querySelector(".incident-list");
+            incidentList.innerHTML = "";
+
+            incidents.forEach((incident) => {
+                const li = document.createElement("li");
+
+                li.innerHTML = `
+            <a href="${incident.link}" target="_blank">
+                ${incident.title}
+            </a>
+            <span class="incident-tag ${incident.risk}">
+                ${incident.risk.toUpperCase()}
+            </span>
+            <span class="incident-time">${incident.time}</span>
+        `;
+
+                incidentList.appendChild(li);
+            });
+        });
+
+    </script>
 </head>
 
 <button class="panic-button" aria-label="Emergency panic button">🚨</button>
@@ -309,6 +457,7 @@ Description:
             </div>
             <div id="navbar">
                 <a href="website.html">Home</a>
+                <a href="chat.html">Chatbot</a>
                 <a href="map.html">Tracking</a>
                 <a href="settings.html">Settings</a>
             </div>

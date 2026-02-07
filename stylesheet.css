@@ -1,1 +1,39 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.settings {
+  padding: 1rem;
+}
+
+.card {
+  background: #1f2933;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.card h3 {
+  margin-bottom: 0.5rem;
+}
+
+.toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.8rem 0;
+}
+
+input[type="text"],
+input[type="tel"] {
+  width: 100%;
+  padding: 0.7rem;
+  margin-top: 0.5rem;
+  border-radius: 8px;
+  border: none;
+}
  
