@@ -1,7 +1,7 @@
 // Import node-fetch
 const fetch = require("node-fetch");
 
-const GEMINI_API_KEY = "YOUR_KEY_HERE";  // Make sure your API key is inserted
+const GEMINI_API_KEY = "AIzaSyBgm7h70I3iXm6plVzAljhEciuEUqAE4Fo";  // Make sure your API key is inserted
 
 async function listModels() {
   const response = await fetch(
