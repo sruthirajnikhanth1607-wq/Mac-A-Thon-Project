@@ -83,4 +83,66 @@ button:hover {
   font-size: 0.9rem;
 }
 
+.settings-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.settings-card h2 {
+  margin-bottom: 6px;
+}
+
+.settings-desc {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-form input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.contact-form button {
+  background: #4a6cf7;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.contacts-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+}
+
+.contacts-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f6f8;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.contacts-list button {
+  background: none;
+  border: none;
+  color: red;
+  cursor: pointer;
+}
+
  
