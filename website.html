@@ -137,6 +137,40 @@ Description:
         .location-text {
             color: #374151;
         }
+
+        .incident-list {
+            list-style: none;
+            margin-top: 1rem;
+            padding: 0;
+        }
+
+        .incident-list li {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .incident-list li:first-child {
+            border-top: none;
+        }
+
+        .incident-list a {
+            text-decoration: none;
+            color: #111827;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .incident-list a:hover {
+            text-decoration: underline;
+        }
+
+        .incident-time {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
     </style>
 </head>
 
@@ -145,7 +179,7 @@ Description:
         <div id="header">
             <div id="title">
                 <h1>SafeSense</h1>
-                <p>Welcome!</p>
+                <p id="welcome-message">Welcome!</p>
             </div>
             <div id="navbar">
                 <a href="website.html">Home</a>
@@ -166,6 +200,21 @@ Description:
                     <h3>Recent Incidents</h3>
                     <p class="metric">2 nearby</p>
                     <span class="card-subtext">Within the last 24 hours</span>
+
+                    <ul class="incident-list">
+                        <li>
+                            <a href="#" target="_blank">
+                                Assault reported near Yonge–Dundas Square
+                            </a>
+                            <span class="incident-time">3 hours ago</span>
+                        </li>
+                        <li>
+                            <a href="#" target="_blank">
+                                Police investigating late-night robbery downtown
+                            </a>
+                            <span class="incident-time">11 hours ago</span>
+                        </li>
+                    </ul>
                 </section>
 
                 <section class="location_info">
@@ -186,8 +235,6 @@ Description:
                             referrerpolicy="no-referrer-when-downgrade">
                         </iframe>
                     </div>
-
-
                 </section>
             </div>
         </div>
