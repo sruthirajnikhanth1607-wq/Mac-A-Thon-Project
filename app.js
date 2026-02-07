@@ -1,7 +1,18 @@
-const GEMINI_API_KEY = "YOUR_API_KEY_HERE";
+const GEMINI_API_KEY = "AIzaSyCeA16WvuI4LK1nxHd2jECO-8hLfNmWGbA";
 
-async function testGemini() {
+async function sendMessage() {
 
+  const input = document.getElementById("user-input");
+  const chatBox = document.getElementById("chat-box");
+
+  const userText = input.value;
+  if (!userText) return;
+
+  // Show user message
+  addMessage(userText, "user");
+  input.value = "";
+
+  // Gemini request
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
     {
@@ -14,7 +25,8 @@ async function testGemini() {
           {
             parts: [
               {
-                text: "Say hello as a city safety assistant."
+                text:
+                  `You are a city safety assistant. Give helpful safety advice.\nUser: ${userText}`
               }
             ]
           }
@@ -25,9 +37,21 @@ async function testGemini() {
 
   const data = await response.json();
 
-  console.log(
-    data.candidates[0].content.parts[0].text
-  );
+  const botReply =
+    data.candidates?.[0]?.content?.parts?.[0]?.text ||
+    "Sorry, I couldn’t process that.";
+
+  addMessage(botReply, "bot");
 }
 
-testGemini();
+// Add message to UI
+function addMessage(text, sender) {
+  const chatBox = document.getElementById("chat-box");
+
+  const msg = document.createElement("div");
+  msg.classList.add("message", sender);
+  msg.textContent = text;
+
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
