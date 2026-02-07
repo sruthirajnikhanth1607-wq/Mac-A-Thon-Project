@@ -2,30 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+
+  <!-- Mobile scaling -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>CitySense Chat</title>
+
+  <!-- Styles -->
   <link rel="stylesheet" href="stylechat.css">
 </head>
 <body>
 
   <div class="chat-container">
 
+    <!-- Header -->
     <div class="chat-header">
-      🛡️ City Safety Assistant
+      🛡️ CitySense — Safety Assistant
     </div>
 
+    <!-- Chat messages -->
     <div id="chat-box" class="chat-box"></div>
 
+    <!-- Input area -->
     <div class="chat-input-area">
-      <input 
-        type="text" 
-        id="user-input" 
-        placeholder="Ask about safety..."
+
+      <input
+        type="text"
+        id="user-input"
+        placeholder="Ask about city safety..."
+        autocomplete="off"
+        onkeypress="handleKey(event)"
       >
-      <button onclick="sendMessage()">Send</button>
+
+      <button onclick="sendMessage()">
+        Send
+      </button>
+
     </div>
 
   </div>
 
+  <!-- JS -->
   <script src="app.js"></script>
+
+  <!-- Enter key support -->
+  <script>
+    function handleKey(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    }
+  </script>
+
 </body>
 </html>
