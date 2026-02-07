@@ -292,6 +292,41 @@ Description:
             color: #9ca3af;
         }
 
+        /* CP24 News Link */
+        .cp24-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.7rem 1.1rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #c81e1e, #991b1b);
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            width: fit-content;
+            box-shadow: 0 8px 20px rgba(200, 30, 30, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        .cp24-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(200, 30, 30, 0.35);
+        }
+
+        .external-arrow {
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        /* Optional helper text */
+        .incident-note {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
         /* =========================
    MOBILE (phones ≤ 640px)
    ========================= */
@@ -408,11 +443,17 @@ Description:
                 transform: translateY(-1px);
             }
 
+            .cp24-link {
+                width: 100%;
+                justify-content: center;
+            }
+
         }
 
+
         /* =========================
-   TABLET (641px – 900px)
-   ========================= */
+        TABLET (641px – 900px)
+        ========================= */
         @media (min-width: 641px) and (max-width: 900px) {
 
             #container {
@@ -534,93 +575,6 @@ Description:
                 safetyActionsPanel.classList.add("hidden");
                 updateRisk("low");
             });
-
-
-            /* -----------------------------
-                6. REAL INCIDENT NEWS (24 hrs)
-                ----------------------------- */
-
-            const NEWS_API_KEY = "75eb457d3b5baf686b1efd1a36c0119e"; // <-- API key for GNews
-            const incidentList = document.querySelector(".incident-list");
-
-            // Keywords related to safety incidents
-            const INCIDENT_QUERY = "assault OR robbery OR shooting OR stabbing OR crime";
-
-            // Toronto for now – later we can auto-detect city
-            const CITY = "Toronto";
-
-            async function loadIncidentNews() {
-                const url = `https://gnews.io/api/v4/search?q=${INCIDENT_QUERY}+${CITY}&lang=en&country=ca&max=5&apikey=${NEWS_API_KEY}`;
-
-                try {
-                    const response = await fetch(url);
-                    const data = await response.json();
-
-                    incidentList.innerHTML = "";
-
-                    const incidentCountElement = document.getElementById("incident-count");
-
-                    if (!data.articles || data.articles.length === 0) {
-                        incidentCountElement.textContent = "0 nearby";
-                        incidentList.innerHTML = "<li>No recent incidents reported.</li>";
-                        return;
-                    }
-
-                    incidentCountElement.textContent = `${data.articles.length} nearby`;
-
-                    data.articles.forEach(article => {
-                        const riskLevel = inferRisk(article.title + article.description);
-
-                        const li = document.createElement("li");
-                        li.innerHTML = `
-                <a href="${article.url}" target="_blank">
-                    ${article.title}
-                </a>
-                <span class="incident-tag ${riskLevel}">
-                    ${riskLevel.toUpperCase()}
-                </span>
-                <span class="incident-time">
-                    ${timeAgo(article.publishedAt)}
-                </span>
-            `;
-
-                        incidentList.appendChild(li);
-                    });
-
-                } catch (error) {
-                    console.error("Failed to load news:", error);
-                    incidentList.innerHTML = "<li>Unable to load incident data.</li>";
-                }
-            }
-
-            loadIncidentNews();
-
-            function inferRisk(text) {
-                const highRiskWords = ["shooting", "stabbing", "homicide", "fatal", "assault"];
-                const mediumRiskWords = ["robbery", "theft", "break-in", "police investigating"];
-
-                const lowerText = text.toLowerCase();
-
-                if (highRiskWords.some(word => lowerText.includes(word))) {
-                    return "high";
-                }
-
-                if (mediumRiskWords.some(word => lowerText.includes(word))) {
-                    return "medium";
-                }
-
-                return "low";
-            }
-
-            function timeAgo(dateString) {
-                const now = new Date();
-                const published = new Date(dateString);
-                const diffHours = Math.floor((now - published) / (1000 * 60 * 60));
-
-                if (diffHours < 1) return "Less than 1 hour ago";
-                if (diffHours === 1) return "1 hour ago";
-                return `${diffHours} hours ago`;
-            }
         });
     </script>
 </head>
@@ -635,7 +589,7 @@ Description:
                 <p id="welcome-message">Welcome!</p>
             </div>
             <div id="navbar">
-                <a href="website.html">Home</a>
+                <a href="index.html">Home</a>
                 <a href="chat.html">Chatbot</a>
                 <a href="map.html">Tracking</a>
                 <a href="settings.html">Settings</a>
@@ -676,12 +630,13 @@ Description:
 
                     <div class="incident-actions">
                         <p class="incident-note">
-                            View verified local news for detailed incident reports.
+                            Stay informed with verified local reporting.
                         </p>
 
-                        <a href="https://www.google.com/search?q=Toronto+crime+news+last+24+hours" target="_blank"
-                            class="news-button">
-                            View Local News
+                        <a href="https://www.cp24.com/news" target="_blank" class="cp24-link"
+                            aria-label="View CP24 local news">
+                            📰 View CP24 Local News
+                            <span class="external-arrow">↗</span>
                         </a>
                     </div>
                 </section>
