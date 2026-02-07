@@ -383,6 +383,31 @@ Description:
                 bottom: 1rem;
                 right: 1rem;
             }
+
+            .incident-actions {
+                margin-top: 1rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .news-button {
+                text-align: center;
+                padding: 0.7rem 1rem;
+                border-radius: 12px;
+                background: #111827;
+                /* dark modern */
+                color: #ffffff;
+                font-weight: 600;
+                text-decoration: none;
+                transition: background 0.2s ease, transform 0.2s ease;
+            }
+
+            .news-button:hover {
+                background: #1f2937;
+                transform: translateY(-1px);
+            }
+
         }
 
         /* =========================
@@ -488,8 +513,8 @@ Description:
                 );
 
                 //if (confirmCall) {
-                    // On mobile this would trigger a real call
-                    //window.location.href = "tel:911";
+                // On mobile this would trigger a real call
+                //window.location.href = "tel:911";
                 //}
             });
 
@@ -515,7 +540,7 @@ Description:
                 6. REAL INCIDENT NEWS (24 hrs)
                 ----------------------------- */
 
-            const NEWS_API_KEY = "YOUR_GNEWS_API_KEY"; // <-- put your key here
+            const NEWS_API_KEY = "75eb457d3b5baf686b1efd1a36c0119e"; // <-- API key for GNews
             const incidentList = document.querySelector(".incident-list");
 
             // Keywords related to safety incidents
@@ -533,10 +558,15 @@ Description:
 
                     incidentList.innerHTML = "";
 
+                    const incidentCountElement = document.getElementById("incident-count");
+
                     if (!data.articles || data.articles.length === 0) {
+                        incidentCountElement.textContent = "0 nearby";
                         incidentList.innerHTML = "<li>No recent incidents reported.</li>";
                         return;
                     }
+
+                    incidentCountElement.textContent = `${data.articles.length} nearby`;
 
                     data.articles.forEach(article => {
                         const riskLevel = inferRisk(article.title + article.description);
@@ -644,23 +674,18 @@ Description:
                     <p class="metric">2 nearby</p>
                     <span class="card-subtext">Within the last 24 hours</span>
 
-                    <ul class="incident-list">
-                        <li>
-                            <a href="#" target="_blank">
-                                Assault reported near Yonge–Dundas Square
-                            </a>
-                            <span class="incident-tag high">High</span>
-                            <span class="incident-time">3 hours ago</span>
-                        </li>
-                        <li>
-                            <a href="#" target="_blank">
-                                Police investigating late-night robbery downtown
-                            </a>
-                            <span class="incident-tag high">High</span>
-                            <span class="incident-time">11 hours ago</span>
-                        </li>
-                    </ul>
+                    <div class="incident-actions">
+                        <p class="incident-note">
+                            View verified local news for detailed incident reports.
+                        </p>
+
+                        <a href="https://www.google.com/search?q=Toronto+crime+news+last+24+hours" target="_blank"
+                            class="news-button">
+                            View Local News
+                        </a>
+                    </div>
                 </section>
+
 
                 <section class="location_info">
                     <h2>📍 Location & Area Safety</h2>

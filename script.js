@@ -37,3 +37,7 @@ saveBtn.addEventListener("click", () => {
   statusMessage.textContent = "Settings saved!";
   setTimeout(() => statusMessage.textContent = "", 2000);
 });
+
+function goHome() {
+  window.location.href = "website.html"; 
+}
