@@ -67,13 +67,6 @@ Description:
             gap: 3.5rem;
         }
 
-        /* Card Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 2.5rem;
-        }
-
         /* Cards */
         section {
             background: white;
@@ -298,6 +291,117 @@ Description:
         .muted {
             color: #9ca3af;
         }
+
+        /* =========================
+   MOBILE (phones ≤ 640px)
+   ========================= */
+        @media (max-width: 640px) {
+
+            /* Reduce page padding */
+            #container {
+                padding: 1rem;
+            }
+
+            /* Stack header vertically */
+            #header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            /* Center title slightly */
+            #title h1 {
+                font-size: 1.6rem;
+            }
+
+            #title p {
+                font-size: 0.85rem;
+            }
+
+            /* Navbar becomes horizontal-scroll tabs */
+            #navbar {
+                width: 100%;
+                display: flex;
+                gap: 1rem;
+                overflow-x: auto;
+                padding-bottom: 0.25rem;
+            }
+
+            #navbar a {
+                margin-left: 0;
+                white-space: nowrap;
+                font-size: 0.9rem;
+            }
+
+            /* Cards tighter on mobile */
+            section {
+                padding: 1.25rem;
+                border-radius: 14px;
+            }
+
+            /* Metrics slightly smaller */
+            .metric {
+                font-size: 1.9rem;
+            }
+
+            /* Risk pill more compact */
+            .risk {
+                font-size: 1.4rem;
+            }
+
+            /* Incident list spacing */
+            .incident-list li {
+                gap: 0.35rem;
+            }
+
+            /* Incident headline */
+            .incident-list a {
+                font-size: 0.9rem;
+            }
+
+            /* Map shorter for phones */
+            .map-container {
+                height: 200px;
+            }
+
+            /* Safety action buttons full width */
+            .safety-buttons {
+                flex-direction: column;
+            }
+
+            .safety-buttons button {
+                width: 100%;
+                padding: 0.75rem;
+                font-size: 0.95rem;
+            }
+
+            /* Panic button easier to reach */
+            .panic-button {
+                width: 60px;
+                height: 60px;
+                font-size: 1.3rem;
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+
+        /* =========================
+   TABLET (641px – 900px)
+   ========================= */
+        @media (min-width: 641px) and (max-width: 900px) {
+
+            #container {
+                padding: 1.25rem;
+            }
+
+            .metric {
+                font-size: 2rem;
+            }
+
+            .map-container {
+                height: 220px;
+            }
+        }
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -383,10 +487,10 @@ Description:
                     "This will contact emergency services immediately. Continue?"
                 );
 
-                if (confirmCall) {
+                //if (confirmCall) {
                     // On mobile this would trigger a real call
-                    window.location.href = "tel:911";
-                }
+                    //window.location.href = "tel:911";
+                //}
             });
 
 
