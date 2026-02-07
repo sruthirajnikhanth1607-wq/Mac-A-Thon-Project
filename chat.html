@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,27 +10,35 @@
 
   <div class="chat-container">
 
-    <!-- Back Button -->
-    <button class="back-btn" onclick="goHome()">← Back</button>
+```
+<!-- Back Button -->
+<button class="back-btn" onclick="goHome()">← Back</button>
 
-    <!-- Header -->
-    <div class="chat-header">
-      🛡️ City Safety Assistant
-    </div>
+<!-- Header -->
+<div class="chat-header">
+  🛡️ CitySense Safety Assistant
+</div>
 
-    <!-- Chat Messages -->
-    <div id="chat-box" class="chat-box"></div>
+<!-- Chat Messages -->
+<div id="chat-box" class="chat-box"></div>
 
-    <!-- Input -->
-    <div class="chat-input-area">
-      <input
-        type="text"
-        id="user-input"
-        placeholder="Ask about safety..."
-        onkeypress="if(event.key==='Enter') sendMessage()"
-      >
-      <button onclick="sendMessage()">Send</button>
-    </div>
+<!-- Input Area -->
+<div class="chat-input-area">
+
+  <input
+    type="text"
+    id="user-input"
+    placeholder="Ask about safety..."
+    onkeypress="if(event.key==='Enter') sendMessage()"
+  >
+
+  <button onclick="sendMessage()">Send</button>
+
+  <!-- Location Button -->
+  <button onclick="getLocation()">📍 Location</button>
+
+</div>
+```
 
   </div>
 
