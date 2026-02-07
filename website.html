@@ -292,6 +292,41 @@ Description:
             color: #9ca3af;
         }
 
+        /* CP24 News Link */
+        .cp24-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.7rem 1.1rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #c81e1e, #991b1b);
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            width: fit-content;
+            box-shadow: 0 8px 20px rgba(200, 30, 30, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        .cp24-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(200, 30, 30, 0.35);
+        }
+
+        .external-arrow {
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        /* Optional helper text */
+        .incident-note {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
         /* =========================
    MOBILE (phones ≤ 640px)
    ========================= */
@@ -408,11 +443,17 @@ Description:
                 transform: translateY(-1px);
             }
 
+            .cp24-link {
+                width: 100%;
+                justify-content: center;
+            }
+
         }
 
+
         /* =========================
-   TABLET (641px – 900px)
-   ========================= */
+        TABLET (641px – 900px)
+        ========================= */
         @media (min-width: 641px) and (max-width: 900px) {
 
             #container {
@@ -676,12 +717,13 @@ Description:
 
                     <div class="incident-actions">
                         <p class="incident-note">
-                            View verified local news for detailed incident reports.
+                            Stay informed with verified local reporting.
                         </p>
 
-                        <a href="https://www.google.com/search?q=Toronto+crime+news+last+24+hours" target="_blank"
-                            class="news-button">
-                            View Local News
+                        <a href="https://www.cp24.com/news" target="_blank" class="cp24-link"
+                            aria-label="View CP24 local news">
+                            📰 View CP24 Local News
+                            <span class="external-arrow">↗</span>
                         </a>
                     </div>
                 </section>
