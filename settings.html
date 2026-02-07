@@ -1,51 +1,46 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="stylesheet.css">
-    <script src="script.js" defer></script>
-    <title>Settings</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings</title>
+  <link rel="stylesheet" href="stylesheet.css" />
 </head>
 
 <body>
 
-<header class="settings-header">
-    <button class="back-button" onclick="goBack()">&#8592;</button>
+  <div class="settings-container">
     <h1>Settings</h1>
-</header>
 
-<main class="settings">
-    <section class="card">
-        <h2>Privacy & Location</h2>
-        <label class="toggle">
-            <span>Enable Location Access</span>
-            <input type="checkbox" checked>
-        </label>
+    <div class="setting-card">
+      <label>
+        <span>Enable Location Tracking</span>
+        <input type="checkbox" id="locationToggle">
+      </label>
+      <p>Allow the app to track your route to ensure safe arrival.</p>
+    </div>
 
-        <label class="toggle">
-            <span>Live Walk Tracking</span>
-            <input type="checkbox" checked>
-        </label>
-    </section>
+    <div class="setting-card">
+      <label>
+        <span>Safety Alerts</span>
+        <input type="checkbox" id="alertToggle">
+      </label>
+      <p>Receive alerts if something seems off.</p>
+    </div>
 
-    <section class="card">
-        <h2>Emergency Contact</h2>
-        
-        <input type="text" placeholder="Contact name">
-        <input type="text" placeholder="Contact phone number">
-    </section>
+    <div class="setting-card">
+      <label for="checkinTime">Check‑in Time</label>
+      <select id="checkinTime">
+        <option value="5">5 minutes</option>
+        <option value="10">10 minutes</option>
+        <option value="15">15 minutes</option>
+      </select>
+    </div>
 
-    <section class="card">
-        <label class="toggle">
-            <span>Notify me when I arrive safely.</span>
-            <input type="checkbox" checked>
-        </label>
-    </section>
+    <button id="saveBtn">Save Settings</button>
+    <p id="statusMessage" class="status"></p>
+  </div>
 
-    <button class="save-button" onclick="saveSettings()">Save changes</button>
-    <button class="danger" onclick="logout()">Log Out</button>
-</main>
+  <script src="script.js"></script>
 </body>
 </html>

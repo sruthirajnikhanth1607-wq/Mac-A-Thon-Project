@@ -1,39 +1,73 @@
-.header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
 }
 
-.settings {
-  padding: 1rem;
+body {
+  margin: 0;
+  background: #f2f2f2;
+  padding: 20px;
 }
 
-.card {
-  background: #1f2933;
-  padding: 1rem;
+.settings-container {
+  max-width: 420px;
+  margin: auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.setting-card {
+  background: #ffffff;
   border-radius: 12px;
-  margin-bottom: 1rem;
-  color: white;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
 }
 
-.card h3 {
-  margin-bottom: 0.5rem;
-}
-
-.toggle {
+.setting-card label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0.8rem 0;
+  font-weight: 600;
 }
 
-input[type="text"],
-input[type="tel"] {
-  width: 100%;
-  padding: 0.7rem;
-  margin-top: 0.5rem;
-  border-radius: 8px;
-  border: none;
+.setting-card p {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #666;
 }
+
+select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background: #111;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #333;
+}
+
+.status {
+  text-align: center;
+  margin-top: 12px;
+  color: green;
+  font-size: 0.9rem;
+}
+
  
