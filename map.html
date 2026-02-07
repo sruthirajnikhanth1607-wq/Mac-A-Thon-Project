@@ -2,16 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>SafeSense – Risk Map</title>
-
-  <!-- Leaflet CSS -->
+  <title>SafeSense – High-Risk Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
   <style>
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background-color: #f4f6f8;
     }
 
     #header {
@@ -27,7 +24,6 @@
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
-      justify-content: center;
     }
 
     #controls input {
@@ -43,7 +39,7 @@
       font-size: 1rem;
       border-radius: 8px;
       border: none;
-      background-color: #b91c1c;
+      background: #b91c1c;
       color: white;
       cursor: pointer;
     }
@@ -57,211 +53,118 @@
       background: white;
       padding: 8px 12px;
       font-size: 0.85rem;
-      line-height: 1.4;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-
-    @media (min-width: 768px) {
-      #map { height: 70vh; }
-      #controls { justify-content: flex-start; }
-    }
   </style>
 </head>
-
 <body>
 
-<div id="header">
-  <h1>SafeSense</h1>
-  <p>Highlighting higher-risk areas only</p>
-</div>
+  <div id="header">
+    <h1>SafeSense</h1>
+    <p>Only showing high-risk areas</p>
+  </div>
 
-<div id="controls">
-  <input id="destination" type="text" placeholder="Enter destination (e.g. McMaster University)">
-  <button onclick="setDestination()">Set Destination</button>
-</div>
+  <div id="controls">
+    <input id="destination" placeholder="Enter destination (e.g. McMaster University)">
+    <button onclick="setDestination()">Set Destination</button>
+  </div>
 
-<div id="map"></div>
+  <div id="map"></div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Initialize map
+    let map = L.map("map").setView([43.6532, -79.3832], 11);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors"
+    }).addTo(map);
 
-<script>
-let map = L.map("map").setView([43.6532, -79.3832], 13); // Default Toronto
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "© OpenStreetMap contributors"
-}).addTo(map);
+    // ----------------------
+    // Made-up high-risk areas only
+    // ----------------------
+    const areas = [
+      { name: "Downtown Toronto", riskIndex: 0.9, polygon: [[43.64,-79.40],[43.64,-79.37],[43.67,-79.37],[43.67,-79.40]] },
+      { name: "Scarborough", riskIndex: 0.7, polygon: [[43.76,-79.30],[43.76,-79.18],[43.79,-79.18],[43.79,-79.30]] },
+      { name: "Mississauga", riskIndex: 0.6, polygon: [[43.58,-79.68],[43.58,-79.60],[43.61,-79.60],[43.61,-79.68]] },
+      { name: "Brampton", riskIndex: 0.7, polygon: [[43.67,-79.78],[43.67,-79.74],[43.70,-79.74],[43.70,-79.78]] },
+      { name: "Hamilton", riskIndex: 0.8, polygon: [[43.25,-79.90],[43.25,-79.84],[43.30,-79.84],[43.30,-79.90]] }
+    ];
 
-let userMarker, destinationMarker, routeLine, geojsonLayer;
-
-// --- Get user location ---
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
-
-    userMarker = L.marker([lat, lng]).addTo(map)
-      .bindPopup("You are here").openPopup();
-
-    map.setView([lat, lng], 14);
-
-    loadData(); // load heatmap once location is known
-  }, () => {
-    alert("Location access denied.");
-    loadData(); // still load heatmap without user location
-  });
-} else {
-  loadData(); // no geolocation available
-}
-
-// --- Compute centroid of polygons ---
-function getCentroid(feature) {
-  const geom = feature.geometry;
-  let coords = [];
-
-  if (geom.type === "Polygon") coords = geom.coordinates[0];
-  else if (geom.type === "MultiPolygon") coords = geom.coordinates[0][0];
-  else return null;
-
-  let sumLat = 0, sumLng = 0;
-  coords.forEach(c => { sumLng += c[0]; sumLat += c[1]; });
-  return [sumLat / coords.length, sumLng / coords.length]; // [lat,lng]
-}
-
-// --- Danger level colors (from data: assault + auto-theft rate 2025) ---
-const DANGER_COLORS = {
-  low:      "#22c55e",  // green
-  elevated: "#eab308",  // yellow/amber
-  high:     "#f97316",  // orange
-  veryHigh: "#dc2626"   // red
-};
-
-function getDangerLevel(combinedRate, maxRisk) {
-  if (maxRisk <= 0) return "low";
-  const pct = combinedRate / maxRisk;
-  if (pct >= 0.75) return "veryHigh";
-  if (pct >= 0.5)  return "high";
-  if (pct >= 0.25) return "elevated";
-  return "low";
-}
-
-let maxRisk = 0;
-
-async function loadData() {
-  try {
-    const response = await fetch('data/neighbourhood-crime-rates.geojson');
-    const geojson = await response.json();
-
-    maxRisk = Math.max(...geojson.features.map(f =>
-      (f.properties.ASSAULT_RATE_2025 || 0) + (f.properties.AUTOTHEFT_RATE_2025 || 0)
-    ), 1);
-
-    drawChoropleth(geojson);
-  } catch (err) {
-    console.error("Failed to load GeoJSON:", err);
-    alert("Could not load neighbourhood data. Open this page via a local server (e.g. run \"python3 -m http.server\" in the project folder and visit http://localhost:8000/map.html).");
-  }
-}
-
-// --- Draw color-coded neighbourhoods by danger level ---
-function getFeatureStyle(feature) {
-  const assault = feature.properties.ASSAULT_RATE_2025 || 0;
-  const theft = feature.properties.AUTOTHEFT_RATE_2025 || 0;
-  const combined = assault + theft;
-  const level = getDangerLevel(combined, maxRisk);
-  const fillColor = DANGER_COLORS[level];
-  return {
-    fillColor,
-    fillOpacity: 0.65,
-    color: "#374151",
-    weight: 1,
-    fill: true
-  };
-}
-
-function applyStyleToLayer(layer, style) {
-  if (layer.setStyle) {
-    layer.setStyle(style);
-  }
-  if (layer.getLayers) {
-    layer.eachLayer(function (sublayer) {
-      applyStyleToLayer(sublayer, style);
-    });
-  }
-}
-
-function drawChoropleth(geojson) {
-  if (geojsonLayer) map.removeLayer(geojsonLayer);
-
-  geojsonLayer = L.geoJSON(geojson, {
-    style: getFeatureStyle,
-    onEachFeature: (feature, layer) => {
-      const style = getFeatureStyle(feature);
-      applyStyleToLayer(layer, style);
-      layer.feature = feature;
-      const assault = feature.properties.ASSAULT_RATE_2025 || 0;
-      const theft = feature.properties.AUTOTHEFT_RATE_2025 || 0;
-      const combined = assault + theft;
-      const level = getDangerLevel(combined, maxRisk);
-      const levelLabel = { low: "Low", elevated: "Elevated", high: "High", veryHigh: "Very High" }[level];
-      layer.bindPopup(`
-        <strong>${feature.properties.AREA_NAME}</strong><br>
-        <span style="color:${DANGER_COLORS[level]}">● ${levelLabel} danger</span><br>
-        Assault Rate (2025): ${Math.round(assault)}<br>
-        Auto Theft Rate (2025): ${Math.round(theft)}<br>
-        Combined Risk: ${Math.round(combined)}
-      `);
+    // ----------------------
+    // Gradient dark red based on risk
+    // ----------------------
+    function getDarkRedGradient(norm) {
+      // norm is 0.5 to 1.0 for high-risk only
+      return norm > 0.85 ? "#7f0000" :   // extreme
+             norm > 0.7  ? "#b91c1c" :   // very high
+             norm > 0.55 ? "#f97316" :   // high
+                           "#fca5a5";   // moderate-high
     }
-  }).addTo(map);
 
-  // Zoom map to show the neighbourhood data (Toronto area)
-  if (geojsonLayer.getBounds().isValid()) {
-    map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20], maxZoom: 12 });
-  }
-}
+    // ----------------------
+    // Draw high-risk polygons
+    // ----------------------
+    areas.forEach(area => {
+      const color = getDarkRedGradient(area.riskIndex);
+      L.polygon(area.polygon, {
+        color: "#374151",
+        fillColor: color,
+        fillOpacity: 0.7,
+        weight: 1
+      }).addTo(map)
+        .bindPopup(`<strong>${area.name}</strong><br>Risk Index: ${(area.riskIndex*100).toFixed(0)}%`);
+    });
 
-// --- Destination lookup ---
-async function setDestination() {
-  const place = document.getElementById("destination").value;
-  if (!place || !userMarker) return;
+    // ----------------------
+    // Legend
+    // ----------------------
+    const legend = L.control({ position: "bottomright" });
+    legend.onAdd = () => {
+      const div = L.DomUtil.create("div","legend");
+      div.innerHTML = `
+        <strong>High-Risk Areas</strong><br>
+        <i style="background:#fca5a5;width:18px;display:inline-block"></i> Moderate-High<br>
+        <i style="background:#f97316;width:18px;display:inline-block"></i> High<br>
+        <i style="background:#b91c1c;width:18px;display:inline-block"></i> Very High<br>
+        <i style="background:#7f0000;width:18px;display:inline-block"></i> Extreme
+      `;
+      return div;
+    };
+    legend.addTo(map);
 
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`);
-    const data = await res.json();
-    if (!data.length) throw new Error("Not found");
+    // ----------------------
+    // User & destination
+    // ----------------------
+    let userMarker, destinationMarker, routeLine;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(p => {
+        const lat = p.coords.latitude;
+        const lon = p.coords.longitude;
+        userMarker = L.marker([lat, lon]).addTo(map).bindPopup("You are here").openPopup();
+        map.setView([lat, lon], 12);
+      });
+    }
 
-    const lat = data[0].lat;
-    const lng = data[0].lon;
+    async function setDestination() {
+      const query = document.getElementById("destination").value;
+      if (!query || !userMarker) return;
 
-    if (destinationMarker) map.removeLayer(destinationMarker);
-    destinationMarker = L.marker([lat, lng]).addTo(map)
-      .bindPopup("Destination").openPopup();
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`);
+      const loc = await res.json();
+      if (!loc.length) return alert("Not found");
 
-    if (routeLine) map.removeLayer(routeLine);
-    routeLine = L.polyline([userMarker.getLatLng(), [lat, lng]], { dashArray: "5,5" }).addTo(map);
+      const [lat, lon] = [loc[0].lat, loc[0].lon];
 
-    map.fitBounds(routeLine.getBounds());
-  } catch (err) {
-    alert("Destination lookup failed. Run via localhost.");
-    console.error(err);
-  }
-}
+      if (destinationMarker) map.removeLayer(destinationMarker);
+      destinationMarker = L.marker([lat, lon]).addTo(map).bindPopup("Destination").openPopup();
 
-// --- Legend (danger level from neighbourhood-crime-rates data) ---
-const legend = L.control({ position: "bottomright" });
-legend.onAdd = function () {
-  const div = L.DomUtil.create("div", "legend");
-  div.innerHTML = `
-    <strong>Danger Level</strong><br>
-    <span style="color:${DANGER_COLORS.low}">●</span> Low<br>
-    <span style="color:${DANGER_COLORS.elevated}">●</span> Elevated<br>
-    <span style="color:${DANGER_COLORS.high}">●</span> High<br>
-    <span style="color:${DANGER_COLORS.veryHigh}">●</span> Very High
-  `;
-  return div;
-};
-legend.addTo(map);
-</script>
+      if (routeLine) map.removeLayer(routeLine);
+      routeLine = L.polyline([userMarker.getLatLng(), [lat, lon]], { dashArray: "5,5" }).addTo(map);
+
+      map.fitBounds(routeLine.getBounds());
+    }
+  </script>
 
 </body>
 </html>
