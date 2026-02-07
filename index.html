@@ -254,6 +254,60 @@ Description:
             color: #111827;
         }
 
+        #custom-alert {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        #custom-alert.hidden {
+            display: none;
+        }
+
+        /* Custom Alert Buttons */
+        #custom-alert button.primary {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: 0.6rem 1.4rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(185, 28, 28, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+        }
+
+        #custom-alert button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(185, 28, 28, 0.45);
+        }
+
+        #custom-alert button.primary:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 14px rgba(185, 28, 28, 0.35);
+        }
+
+        #custom-alert button.tertiary {
+            background: #e5e7eb;
+            color: #111827;
+            border-radius: 999px;
+            padding: 0.6rem 1.4rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        #custom-alert button.tertiary:hover {
+            background: #d1d5db;
+        }
+
+
         /* Hidden by default */
         .hidden {
             display: none;
@@ -494,6 +548,35 @@ Description:
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("custom-alert").classList.add("hidden");
+
+            function showAlert(title, message, showCancel = false) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById("custom-alert");
+                    const titleEl = document.getElementById("alert-title");
+                    const messageEl = document.getElementById("alert-message");
+                    const confirmBtn = document.getElementById("alert-confirm");
+                    const cancelBtn = document.getElementById("alert-cancel");
+
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+
+                    cancelBtn.classList.toggle("hidden", !showCancel);
+
+                    modal.classList.remove("hidden");
+
+                    confirmBtn.onclick = () => {
+                        modal.classList.add("hidden");
+                        resolve(true);
+                    };
+
+                    cancelBtn.onclick = () => {
+                        modal.classList.add("hidden");
+                        resolve(false);
+                    };
+                });
+            }
+
             /* -----------------------------
                1. GTHA CRIME DATABASE
                ----------------------------- */
@@ -651,24 +734,52 @@ Description:
             /* -----------------------------
                5. PANIC BUTTON & SAFETY ACTIONS
                ----------------------------- */
-            panicButton.addEventListener("click", () => {
-                const confirmCall = confirm(
-                    "This will contact emergency services immediately. Continue?"
+            panicButton.addEventListener("click", async () => {
+                const confirmed = await showAlert(
+                    "Emergency Call",
+                    "This will contact emergency services immediately. Continue?",
+                    true
                 );
-                if (confirmCall) {
+
+                if (confirmed) {
                     window.location.href = "tel:911";
                 }
             });
 
-            document.querySelector(".primary").addEventListener("click", () => {
-                alert("Emergency services have been contacted.");
+
+            document.querySelector(".primary").addEventListener("click", async () => {
+                await showAlert(
+                    "Emergency Services",
+                    "Emergency services have been contacted. Stay where you are if possible.",
+                    true
+                );
             });
 
-            document.querySelector(".secondary").addEventListener("click", () => {
-                alert(`Emergency contact (${user.emergencyContact}) has been notified.`);
+
+            document.querySelector(".secondary").addEventListener("click", async () => {
+                if (!user.emergencyContact) {
+                    await showAlert(
+                        "No Emergency Contact",
+                        "You don’t have an emergency contact set. Add one in Settings."
+                    );
+                    return;
+                }
+
+                await showAlert(
+                    "Contact Notified",
+                    `Your emergency contact (${user.emergencyContact}) has been notified.`,
+                    true
+                );
             });
 
-            document.querySelector(".tertiary").addEventListener("click", () => {
+
+
+            document.querySelector(".tertiary").addEventListener("click", async () => {
+                await showAlert(
+                    "Status Updated",
+                    "Glad you’re safe. Risk level has been lowered."
+                );
+
                 safetyActionsPanel.classList.add("hidden");
                 updateRisk("low");
             });
@@ -764,6 +875,35 @@ Description:
             <p>SafeSense respects your privacy. Your data is encrypted and never shared.</p>
         </footer>
     </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="custom-alert" class="hidden" style="
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+">
+        <div style="
+        background: white;
+        padding: 1.5rem;
+        border-radius: 14px;
+        max-width: 320px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    ">
+            <h3 id="alert-title" style="margin-bottom: 0.5rem;">Alert</h3>
+            <p id="alert-message" style="font-size: 0.9rem; color: #374151;"></p>
+
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
+                <button id="alert-confirm" class="primary">OK</button>
+                <button id="alert-cancel" class="tertiary hidden">Cancel</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
