@@ -159,28 +159,33 @@ async function loadData() {
     drawChoropleth(geojson);
   } catch (err) {
     console.error("Failed to load GeoJSON:", err);
+    alert("Could not load neighbourhood data. Open this page via a local server (e.g. run \"python3 -m http.server\" in the project folder and visit http://localhost:8000/map.html).");
   }
 }
 
 // --- Draw color-coded neighbourhoods by danger level ---
+function getFeatureStyle(feature) {
+  const assault = feature.properties.ASSAULT_RATE_2025 || 0;
+  const theft = feature.properties.AUTOTHEFT_RATE_2025 || 0;
+  const combined = assault + theft;
+  const level = getDangerLevel(combined, maxRisk);
+  const fillColor = DANGER_COLORS[level];
+  return {
+    fillColor,
+    fillOpacity: 0.65,
+    color: "#374151",
+    weight: 1,
+    fill: true
+  };
+}
+
 function drawChoropleth(geojson) {
   if (geojsonLayer) map.removeLayer(geojsonLayer);
 
   geojsonLayer = L.geoJSON(geojson, {
-    style: (feature) => {
-      const assault = feature.properties.ASSAULT_RATE_2025 || 0;
-      const theft = feature.properties.AUTOTHEFT_RATE_2025 || 0;
-      const combined = assault + theft;
-      const level = getDangerLevel(combined, maxRisk);
-      const fillColor = DANGER_COLORS[level];
-      return {
-        fillColor,
-        fillOpacity: 0.65,
-        color: "#374151",
-        weight: 1
-      };
-    },
+    style: getFeatureStyle,
     onEachFeature: (feature, layer) => {
+      layer.setStyle(getFeatureStyle(feature));
       const assault = feature.properties.ASSAULT_RATE_2025 || 0;
       const theft = feature.properties.AUTOTHEFT_RATE_2025 || 0;
       const combined = assault + theft;
