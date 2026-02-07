@@ -1,5 +1,6 @@
 // Import node-fetch
-const fetch = require("node-fetch");
+import fetch from 'node-fetch'; // for newer versions of node (v18+)
+
 
 const GEMINI_API_KEY = "AIzaSyBgm7h70I3iXm6plVzAljhEciuEUqAE4Fo";  // Make sure your API key is inserted
 
