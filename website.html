@@ -10,7 +10,6 @@ Description:
     <meta charset="utf-8">
     <title>SafeSense</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="script.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -69,7 +68,7 @@ Description:
         }
 
         /* Card Grid */
-        .card-grid {
+        .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 2.5rem;
@@ -295,6 +294,10 @@ Description:
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
             cursor: pointer;
         }
+
+        .muted {
+            color: #9ca3af;
+        }
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -405,51 +408,93 @@ Description:
 
 
             /* -----------------------------
-               6. INCIDENT DATA (mock news)
-               ----------------------------- */
-            // Later: replace with real API (NewsAPI, GNews, custom backend)
-            const incidents = [
-                {
-                    title: "Assault reported near Yonge–Dundas Square",
-                    risk: "high",
-                    time: "3 hours ago",
-                    link: "#"
-                },
-                {
-                    title: "Police investigating late-night robbery downtown",
-                    risk: "high",
-                    time: "11 hours ago",
-                    link: "#"
-                }
-            ];
+                6. REAL INCIDENT NEWS (24 hrs)
+                ----------------------------- */
 
+            const NEWS_API_KEY = "YOUR_GNEWS_API_KEY"; // <-- put your key here
             const incidentList = document.querySelector(".incident-list");
-            incidentList.innerHTML = "";
 
-            incidents.forEach((incident) => {
-                const li = document.createElement("li");
+            // Keywords related to safety incidents
+            const INCIDENT_QUERY = "assault OR robbery OR shooting OR stabbing OR crime";
 
-                li.innerHTML = `
-            <a href="${incident.link}" target="_blank">
-                ${incident.title}
-            </a>
-            <span class="incident-tag ${incident.risk}">
-                ${incident.risk.toUpperCase()}
-            </span>
-            <span class="incident-time">${incident.time}</span>
-        `;
+            // Toronto for now – later we can auto-detect city
+            const CITY = "Toronto";
 
-                incidentList.appendChild(li);
-            });
+            async function loadIncidentNews() {
+                const url = `https://gnews.io/api/v4/search?q=${INCIDENT_QUERY}+${CITY}&lang=en&country=ca&max=5&apikey=${NEWS_API_KEY}`;
+
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    incidentList.innerHTML = "";
+
+                    if (!data.articles || data.articles.length === 0) {
+                        incidentList.innerHTML = "<li>No recent incidents reported.</li>";
+                        return;
+                    }
+
+                    data.articles.forEach(article => {
+                        const riskLevel = inferRisk(article.title + article.description);
+
+                        const li = document.createElement("li");
+                        li.innerHTML = `
+                <a href="${article.url}" target="_blank">
+                    ${article.title}
+                </a>
+                <span class="incident-tag ${riskLevel}">
+                    ${riskLevel.toUpperCase()}
+                </span>
+                <span class="incident-time">
+                    ${timeAgo(article.publishedAt)}
+                </span>
+            `;
+
+                        incidentList.appendChild(li);
+                    });
+
+                } catch (error) {
+                    console.error("Failed to load news:", error);
+                    incidentList.innerHTML = "<li>Unable to load incident data.</li>";
+                }
+            }
+
+            loadIncidentNews();
+
+            function inferRisk(text) {
+                const highRiskWords = ["shooting", "stabbing", "homicide", "fatal", "assault"];
+                const mediumRiskWords = ["robbery", "theft", "break-in", "police investigating"];
+
+                const lowerText = text.toLowerCase();
+
+                if (highRiskWords.some(word => lowerText.includes(word))) {
+                    return "high";
+                }
+
+                if (mediumRiskWords.some(word => lowerText.includes(word))) {
+                    return "medium";
+                }
+
+                return "low";
+            }
+
+            function timeAgo(dateString) {
+                const now = new Date();
+                const published = new Date(dateString);
+                const diffHours = Math.floor((now - published) / (1000 * 60 * 60));
+
+                if (diffHours < 1) return "Less than 1 hour ago";
+                if (diffHours === 1) return "1 hour ago";
+                return `${diffHours} hours ago`;
+            }
         });
-
     </script>
 </head>
 
-<button class="panic-button" aria-label="Emergency panic button">🚨</button>
-
 <body>
     <div id="container">
+        <button class="panic-button" aria-label="Emergency panic button">🚨</button>
+
         <div id="header">
             <div id="title">
                 <h1>SafeSense</h1>
