@@ -79,6 +79,7 @@ Description:
             background: white;
             border-radius: 16px;
             padding: 1.5rem;
+            margin-bottom: 1.5rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
 
@@ -170,8 +171,133 @@ Description:
             font-size: 0.75rem;
             color: #9ca3af;
         }
+
+        /* Risk levels */
+        .risk.low {
+            color: #047857;
+            /* green */
+        }
+
+        .risk.medium {
+            color: #b45309;
+            /* yellow/orange */
+        }
+
+        .risk.high {
+            color: #b91c1c;
+            /* red */
+        }
+
+        .risk {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 1.75rem;
+        }
+
+        .risk.low {
+            background-color: #ecfdf5;
+        }
+
+        .risk.medium {
+            background-color: #fffbeb;
+        }
+
+        .risk.high {
+            background-color: #fef2f2;
+        }
+
+        /* Safety Actions Panel */
+        #safety-actions {
+            background: #fff7ed;
+            border-left: 6px solid #f59e0b;
+            border-radius: 14px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        #safety-actions h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .safety-text {
+            font-size: 0.95rem;
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+
+        .safety-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .safety-buttons button {
+            border: none;
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* Button styles */
+        button.primary {
+            background-color: #b91c1c;
+            color: white;
+        }
+
+        button.secondary {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        button.tertiary {
+            background-color: #e5e7eb;
+            color: #111827;
+        }
+
+        /* Hidden by default */
+        .hidden {
+            display: none;
+        }
+
+        .incident-tag {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 6px;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .incident-tag.high {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .incident-tag.medium {
+            background: #fffbeb;
+            color: #b45309;
+        }
+
+        .panic-button {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: #b91c1c;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+        }
     </style>
 </head>
+
+<button class="panic-button" aria-label="Emergency panic button">🚨</button>
 
 <body>
     <div id="container">
@@ -190,13 +316,32 @@ Description:
         <div id="content">
             <div class="grid">
                 <section class="safety_status">
-                    <h3>Risk Level</h3>
-                    <p class="metric">Low</p>
+                    <h3>⚠️ Risk Level</h3>
+                    <p class="metric risk low" id="risk-level">Low</p>
                     <span class="card-subtext">Based on recent activity</span>
                 </section>
 
+                <p class="safety-text muted">
+                    No immediate threats detected in your area.
+                </p>
+
+
+                <section id="safety-actions" class="hidden">
+                    <h3>Need help?</h3>
+                    <p class="safety-text">
+                        Your current risk level is elevated. Would you like SafeSense to take action?
+                    </p>
+
+                    <div class="safety-buttons">
+                        <button class="primary">Contact Emergency Services</button>
+                        <button class="secondary">Notify Emergency Contact</button>
+                        <button class="tertiary">I'm Safe</button>
+                    </div>
+                </section>
+
+
                 <section class="recent_incidents">
-                    <h3>Recent Incidents</h3>
+                    <h3>📰 Recent Incidents</h3>
                     <p class="metric">2 nearby</p>
                     <span class="card-subtext">Within the last 24 hours</span>
 
@@ -205,28 +350,26 @@ Description:
                             <a href="#" target="_blank">
                                 Assault reported near Yonge–Dundas Square
                             </a>
+                            <span class="incident-tag high">High</span>
                             <span class="incident-time">3 hours ago</span>
                         </li>
                         <li>
                             <a href="#" target="_blank">
                                 Police investigating late-night robbery downtown
                             </a>
+                            <span class="incident-tag high">High</span>
                             <span class="incident-time">11 hours ago</span>
                         </li>
                     </ul>
                 </section>
 
                 <section class="location_info">
-                    <h2>Location & Area Safety</h2>
+                    <h2>📍 Location & Area Safety</h2>
 
                     <!-- Toggle this based on consent -->
                     <p class="location-text">
                         📍 Downtown Toronto <br>
                         Safety Score: <strong>92 / 100</strong>
-                    </p>
-
-                    <p class="location-text muted">
-                        Location access is disabled. Enable it to view real-time area safety and maps.
                     </p>
 
                     <div class="map-container">
