@@ -106,6 +106,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return { level, score, incidents: data.incidents24h };
     }
+    function getRiskExplanation(city, level, incidents, timeOfDay) {
+        if (level === "low") {
+            return `No unusual activity has been reported in ${city}. This area is currently considered safe.`;
+        }
+
+        if (level === "medium") {
+            return `There has been a moderate increase in reported incidents in ${city}, especially during the ${timeOfDay.toLowerCase()}. Stay alert and avoid isolated areas.`;
+        }
+
+        return `Multiple incidents have been reported in ${city} within the last 24 hours. Extra caution is advised, particularly at ${timeOfDay.toLowerCase()}.`;
+    }
+
 
     /* -----------------------------
        3. LOCATION & RISK UPDATES
@@ -142,22 +154,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Update risk level
                 updateRisk(riskData.level);
                 const explanationElement = document.getElementById("ai-risk-explanation");
+                const timeOfDay =
+                    new Date().getHours() >= 20 || new Date().getHours() <= 5
+                        ? "Night"
+                        : "Day";
 
-                const contextForAI = {
+                explanationElement.textContent = getRiskExplanation(
                     city,
-                    riskLevel: riskData.level,
-                    incidents24h: riskData.incidents,
-                    timeOfDay:
-                        new Date().getHours() >= 20 || new Date().getHours() <= 5
-                            ? "Night"
-                            : "Day"
-                };
-
-                fetchRiskExplanation(contextForAI).then(text => {
-                    explanationElement.textContent = text;
-                });
-
-
+                    riskData.level,
+                    riskData.incidents,
+                    timeOfDay
+                );
                 // Debug logging
                 console.log('Location detected:', city);
                 console.log('Coordinates:', lat, lon);
@@ -197,25 +204,6 @@ document.addEventListener("DOMContentLoaded", () => {
             panicButton.classList.add("pulse");
         }
     }
-
-    async function fetchRiskExplanation(context) {
-        try {
-            const response = await fetch("/api/explain-risk", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(context)
-            });
-
-            const data = await response.json();
-            return data.explanation;
-        } catch (err) {
-            console.error(err);
-            return "Unable to generate explanation at this time.";
-        }
-    }
-
 
     /* -----------------------------
        5. PANIC BUTTON & SAFETY ACTIONS
