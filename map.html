@@ -16,6 +16,35 @@
       background-color: #f4f6f8;
     }
 
+    /* Navbar Styles */
+    #navbar {
+      background: #1f2933;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #navbar a {
+      text-decoration: none;
+      font-weight: 500;
+      color: #d1d5db;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    #navbar a:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    #navbar a.active {
+      color: white;
+      background: #b91c1c;
+    }
+
     #header {
       background: #1f2933;
       color: white;
@@ -189,6 +218,21 @@
         max-width: 500px;
       }
     }
+
+    /* Mobile navbar */
+    @media (max-width: 640px) {
+      #navbar {
+        gap: 0.75rem;
+        padding: 0.75rem;
+        overflow-x: auto;
+      }
+
+      #navbar a {
+        white-space: nowrap;
+        font-size: 0.9rem;
+        padding: 0.4rem 0.75rem;
+      }
+    }
   </style>
 </head>
 
@@ -196,6 +240,13 @@
   <div id="header">
     <h1>SafeSense</h1>
     <p>Highlighting higher-risk areas only</p>
+  </div>
+
+  <div id="navbar">
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chatbot</a>
+    <a href="map.html" class="active">Tracking</a>
+    <a href="settings.html">Settings</a>
   </div>
 
   <div id="controls">
@@ -272,6 +323,31 @@
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
   <script>
+    async function sendMessageToBackend(message, phones) {
+      if (!currentSessionId) return;
+
+      try {
+        const res = await fetch("http://localhost:5000/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: currentSessionId,
+            message,
+            phones
+          })
+        });
+
+        const data = await res.json();
+        if (data.status === "ok") {
+          console.log("Message sent to backend:", message);
+        } else {
+          console.error("Error sending message:", data);
+        }
+      } catch (err) {
+        console.error("Failed to send message:", err);
+      }
+    }
+
     const map = L.map("map").setView([43.6532, -79.3832], 11); // Default Toronto
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -922,11 +998,11 @@
     // LIVE LOCATION SHARING
     // ============================================
 
-    function initializeLiveSharing() {
+    async function initializeLiveSharing() {
       // Create initial session data
       const sessionData = {
         sessionId: currentSessionId,
-        userId: 'user_' + Date.now(), // In production, use actual user ID
+        userId: 'user_' + Date.now(),
         destination: tripDestination,
         startTime: Date.now(),
         deadline: arrivalDeadline,
@@ -936,50 +1012,71 @@
         status: 'active'
       };
 
-      // Store in localStorage (simulating backend storage)
-      localStorage.setItem(`session_${currentSessionId}`, JSON.stringify(sessionData));
+      try {
+        // Send to backend server on port 3000
+        await fetch('http://localhost:3000/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sessionData)
+        });
 
-      // Generate shareable link
-      const baseUrl = window.location.origin + window.location.pathname.replace('map-sophisticated-search.html', '');
-      const shareUrl = `${baseUrl}track.html?session=${currentSessionId}`;
-      
-      // Display share section
-      document.getElementById("shareLink").value = shareUrl;
-      document.getElementById("shareSection").classList.remove("hidden");
+        // Also store locally as backup
+        localStorage.setItem(`session_${currentSessionId}`, JSON.stringify(sessionData));
 
-      console.log("Live sharing initialized:", currentSessionId);
+        // Generate shareable link
+        const baseUrl = window.location.origin;
+        const shareUrl = `${baseUrl}/track.html?session=${currentSessionId}`;
+        
+        document.getElementById("shareLink").value = shareUrl;
+        document.getElementById("shareSection").classList.remove("hidden");
+
+        console.log("Live sharing initialized:", currentSessionId);
+      } catch (error) {
+        console.error("Error initializing sharing:", error);
+        alert("Could not start live sharing. Make sure server is running.");
+      }
     }
 
-    function updateSharedLocation(lat, lon) {
+    async function updateSharedLocation(lat, lon) {
       if (!currentSessionId) return;
 
       try {
+        // Update on backend (port 3000)
+        await fetch(`http://localhost:3000/api/sessions/${currentSessionId}/location`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon })
+        });
+
+        // Also update locally as backup
         const sessionData = JSON.parse(localStorage.getItem(`session_${currentSessionId}`) || '{}');
-        
         sessionData.currentLocation = { lat, lon };
         sessionData.lastUpdate = Date.now();
-        
         localStorage.setItem(`session_${currentSessionId}`, JSON.stringify(sessionData));
-        
-        // In production, this would send to backend via WebSocket or API
+
         console.log("Location updated:", lat, lon);
       } catch (error) {
         console.error("Error updating location:", error);
       }
     }
 
-    function stopLiveSharing() {
+    async function stopLiveSharing() {
       if (!currentSessionId) return;
 
       try {
+        // End session on backend (port 3000)
+        await fetch(`http://localhost:3000/api/sessions/${currentSessionId}/end`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        // Also update locally
         const sessionData = JSON.parse(localStorage.getItem(`session_${currentSessionId}`) || '{}');
         sessionData.status = 'ended';
         sessionData.endTime = Date.now();
         localStorage.setItem(`session_${currentSessionId}`, JSON.stringify(sessionData));
         
-        // Hide share section
         document.getElementById("shareSection").classList.add("hidden");
-        
         currentSessionId = null;
         
         console.log("Live sharing stopped");
