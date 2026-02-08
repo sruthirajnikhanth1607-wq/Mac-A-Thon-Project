@@ -216,7 +216,10 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         if (confirmed) {
-            window.location.href = "tel:911";
+            await showAlert(
+                "Status",
+                "Emergency services contacted successfully."
+            );
         }
     });
 
