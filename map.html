@@ -199,7 +199,7 @@
   </div>
 
   <div id="controls">
-    <input id="destination" type="text" placeholder="Enter destination (e.g. McMaster University)" autocomplete="off">
+    <input id="destination" type="text" placeholder="Enter destination (e.g. McMaster University, Hamilton)" autocomplete="off">
     <button onclick="setDestinationFromInput()" id="setDestBtn">Set Destination</button>
     <div id="suggestions"></div>
   </div>
@@ -274,7 +274,7 @@
   <script>
     const map = L.map("map").setView([43.6532, -79.3832], 11); // Default Toronto
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://{s.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors"
     }).addTo(map);
 
@@ -432,6 +432,18 @@
     }
 
     // ============================================
+    // FETCH WITH TIMEOUT HELPER
+    // ============================================
+    function fetchWithTimeout(url, options = {}, timeout = 5000) {
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), timeout)
+        )
+      ]);
+    }
+
+    // ============================================
     // SOPHISTICATED DESTINATION LOOKUP
     // ============================================
 
@@ -473,22 +485,15 @@
 
     async function searchLocations(query) {
       try {
-        // Add user location bias if available
-        let searchQuery = query;
-        let viewbox = "";
-        
-        if (lastKnownLatLng) {
-          // Bias search toward user's current location
-          viewbox = `&viewbox=${lastKnownLatLng.lon - 0.5},${lastKnownLatLng.lat + 0.5},${lastKnownLatLng.lon + 0.5},${lastKnownLatLng.lat - 0.5}&bounded=0`;
-        }
-
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(searchQuery)}${viewbox}&addressdetails=1`,
+        // Use a simpler search without restrictive viewbox
+        const response = await fetchWithTimeout(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}&addressdetails=1&countrycodes=ca`,
           {
             headers: {
-              'User-Agent': 'SafeSense-App/1.0'
+              'User-Agent': 'SafeSense-App/1.0 (contact@example.com)'
             }
-          }
+          },
+          5000
         );
 
         if (!response.ok) {
@@ -501,21 +506,33 @@
           currentSuggestions = results;
           displaySuggestions(results);
         } else {
-          // Fallback: try a broader search
+          // Try fallback search
           await tryFallbackSearch(query);
         }
       } catch (error) {
         console.error("Search error:", error);
-        // Try fallback search on error
-        await tryFallbackSearch(query);
+        // Show user-friendly message in suggestions
+        showErrorInSuggestions();
       }
+    }
+
+    function showErrorInSuggestions() {
+      suggestionsDiv.innerHTML = `
+        <div class="suggestion-item" style="cursor: default; color: #9ca3af;">
+          <div class="suggestion-item-name">Search unavailable</div>
+          <div class="suggestion-item-address">Please try again or enter the full address</div>
+        </div>
+      `;
+      suggestionsDiv.classList.add("show");
     }
 
     async function tryFallbackSearch(query) {
       try {
         // Fallback: Photon API (alternative geocoder)
-        const response = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5${lastKnownLatLng ? `&lat=${lastKnownLatLng.lat}&lon=${lastKnownLatLng.lon}` : ''}`
+        const response = await fetchWithTimeout(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=en`,
+          {},
+          5000
         );
 
         if (response.ok) {
@@ -524,7 +541,7 @@
             const results = data.features.map(f => ({
               lat: f.geometry.coordinates[1],
               lon: f.geometry.coordinates[0],
-              display_name: f.properties.name || f.properties.street || 'Unknown location',
+              display_name: f.properties.name || f.properties.street || query,
               address: formatPhotonAddress(f.properties)
             }));
             currentSuggestions = results;
@@ -533,7 +550,7 @@
           }
         }
         
-        // If both fail, show no results message
+        // If no results from either service
         showNoResults();
       } catch (error) {
         console.error("Fallback search error:", error);
@@ -608,7 +625,7 @@
       const query = destInput.value.trim();
       
       if (!query) {
-        alert("Please enter a destination");
+        showErrorInSuggestions();
         return;
       }
 
@@ -619,21 +636,24 @@
 
       try {
         // Try primary geocoding service
-        let response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}${lastKnownLatLng ? `&viewbox=${lastKnownLatLng.lon - 0.5},${lastKnownLatLng.lat + 0.5},${lastKnownLatLng.lon + 0.5},${lastKnownLatLng.lat - 0.5}` : ''}`,
+        let response = await fetchWithTimeout(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}&countrycodes=ca`,
           {
             headers: {
-              'User-Agent': 'SafeSense-App/1.0'
+              'User-Agent': 'SafeSense-App/1.0 (contact@example.com)'
             }
-          }
+          },
+          5000
         );
 
         let data = await response.json();
 
         // If no results, try fallback service
         if (!data || data.length === 0) {
-          response = await fetch(
-            `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1${lastKnownLatLng ? `&lat=${lastKnownLatLng.lat}&lon=${lastKnownLatLng.lon}` : ''}`
+          response = await fetchWithTimeout(
+            `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`,
+            {},
+            5000
           );
           
           if (response.ok) {
@@ -661,7 +681,30 @@
         
       } catch (error) {
         console.error("Geocoding error:", error);
-        alert("Could not find that location. Please try:\n• Being more specific (include city/street)\n• Using a different name\n• Checking your spelling");
+        
+        // Show error in suggestions instead of alert
+        suggestionsDiv.innerHTML = `
+          <div class="suggestion-item" style="cursor: default; color: #9ca3af;">
+            <div class="suggestion-item-name">Location not found</div>
+            <div class="suggestion-item-address">Try: "McMaster University, Hamilton" or include city name</div>
+          </div>
+        `;
+        suggestionsDiv.classList.add("show");
+        
+        // Optional: also update the search input placeholder
+        destInput.placeholder = "Try: 'McMaster University, Hamilton'";
+        
+        // Reset destination
+        tripDestination = null;
+        if (destinationMarker) {
+          map.removeLayer(destinationMarker);
+          destinationMarker = null;
+        }
+        if (routeLine) {
+          map.removeLayer(routeLine);
+          routeLine = null;
+        }
+        updateStartTripButton();
       } finally {
         btn.disabled = false;
         btn.textContent = originalText;
@@ -940,7 +983,7 @@
       localStorage.setItem(`session_${currentSessionId}`, JSON.stringify(sessionData));
 
       // Generate shareable link
-      const baseUrl = window.location.origin + window.location.pathname.replace('map-sophisticated-search.html', '');
+      const baseUrl = window.location.origin + window.location.pathname.replace('map.html', '');
       const shareUrl = `${baseUrl}track.html?session=${currentSessionId}`;
       
       // Display share section
