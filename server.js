@@ -31,7 +31,7 @@ app.post("/api/chat", async (req, res) => {
                     contents: [{
                         role: "user",
                         parts: [{ 
-                            text: `You are CitySense, a safety assistant. Keep advice brief.\nLocation: ${userLocation}\nUser: ${userText}` 
+                            text: `You are SafeSense, a safety assistant. Keep advice brief.\nLocation: ${userLocation}\nUser: ${userText}` 
                         }]
                     }]
                 })
