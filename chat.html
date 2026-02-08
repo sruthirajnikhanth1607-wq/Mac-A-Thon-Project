@@ -1,45 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SafeSense Chat</title>
   <link rel="stylesheet" href="stylechat.css">
-</head>
+  <style>
+    /* Voice Interface Styles */
+    .chat-input-area {
+      display: flex; align-items: center; gap: 10px;
+      padding: 15px; background: white; border-top: 1px solid #eee;
+    }
+    
+    .icon-btn {
+      background: #f3f4f6; color: #374151; border: none;
+      width: 44px; height: 44px; border-radius: 50%;
+      cursor: pointer; font-size: 1.3rem; display: flex;
+      align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .icon-btn:hover { background: #e5e7eb; }
 
+    /* Red Pulse when Listening */
+    .mic-active {
+      background-color: #ef4444 !important; color: white !important;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    
+    .send-btn {
+      background: #2563eb; color: white; border: none;
+      padding: 10px 24px; border-radius: 25px; font-weight: bold; cursor: pointer;
+    }
+    .send-btn:hover { background: #1d4ed8; }
+
+    #user-input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #ddd; outline: none; font-size: 1rem; }
+  </style>
+</head>
 <body>
 
   <div class="chat-container">
+    <button class="back-btn" onclick="window.location.href='index.html'">← Home</button>
 
     <div class="chat-header">
-      🛡️ SafeSense Safety Assistant
+      🛡️ SafeSense AI
+      <button id="mute-btn" class="icon-btn" style="position: absolute; right: 10px; width:32px; height:32px; font-size:1rem;" onclick="toggleMute()" title="Mute Voice">
+        🔊
+      </button>
     </div>
-    <div id="navbar">
-      <a href="index.html">Home</a>
-      <a href="chat.html">Chatbot</a>
-      <a href="map.html">Tracking</a>
-      <a href="settings.html">Settings</a>
+
+    <div id="chat-box" class="chat-box">
+      <div class="message bot">Hello! I am SafeSense. Tap the microphone 🎙️ to speak to me.</div>
     </div>
-    <div id="chat-box" class="chat-box"></div>
 
     <div class="chat-input-area">
-      <input type="text" id="user-input" placeholder="Ask about safety..."
-        onkeypress="if(event.key==='Enter') sendMessage()">
-      <button onclick="sendMessage()">Send</button>
-      <button onclick="getLocation()" title="Share Location">📍</button>
+      <button id="mic-btn" class="icon-btn" onclick="startListening()" title="Speak">🎙️</button>
+      
+      <input type="text" id="user-input" placeholder="Type or speak..." onkeypress="if(event.key==='Enter') sendMessage()">
+      
+      <button class="send-btn" onclick="sendMessage()">Send</button>
     </div>
-
   </div>
 
-  <script src="app.js"></script>
-
   <script>
-    function goHome() {
-      window.location.href = "index.html";
+    // --- Configuration ---
+    let isMuted = false;
+    let recognition;
+    const synth = window.speechSynthesis;
+
+    // --- Chat Functionality ---
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const text = input.value.trim();
+      if (!text) return;
+
+      // 1. Show User Message
+      addMessage(text, "user");
+      input.value = "";
+      
+      // 2. Show Loading
+      const loadingId = addMessage("Thinking...", "bot", true);
+
+      try {
+        const response = await fetch("http://localhost:3000/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text })
+        });
+
+        const data = await response.json();
+        document.getElementById(loadingId).remove();
+        
+        // 3. Show Bot Response
+        addMessage(data.reply, "bot");
+        
+        // 4. Speak Response (Text-to-Speech)
+        if (!isMuted) speakText(data.reply);
+
+      } catch (error) {
+        document.getElementById(loadingId).remove();
+        addMessage("⚠️ Connection Error. Run 'node chatserver.js'", "bot");
+        console.error(error);
+      }
+    }
+
+    function addMessage(text, sender, isLoading = false) {
+      const chatBox = document.getElementById("chat-box");
+      const div = document.createElement("div");
+      div.className = `message ${sender}`;
+      div.innerText = text;
+      if (isLoading) div.id = "loading-msg";
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      return div.id;
+    }
+
+    // --- Voice Recognition (Speech-to-Text) ---
+    function startListening() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Voice features work best in Chrome.");
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      const micBtn = document.getElementById("mic-btn");
+      micBtn.classList.add("mic-active"); // Start pulsing animation
+
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("user-input").value = transcript;
+        micBtn.classList.remove("mic-active");
+        
+        // Auto-send after a tiny delay
+        setTimeout(sendMessage, 600);
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech Error:", event.error);
+        micBtn.classList.remove("mic-active");
+      };
+
+      recognition.onend = () => {
+        micBtn.classList.remove("mic-active");
+      };
+    }
+
+    // --- Text-to-Speech (Robot Voice) ---
+    function speakText(text) {
+      if (synth.speaking) synth.cancel(); // Stop any previous speech
+
+      // Clean text (remove markdown symbols like * or #)
+      const cleanText = text.replace(/[*#]/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 1.0; 
+      utterance.pitch = 1.0;
+
+      synth.speak(utterance);
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      const btn = document.getElementById("mute-btn");
+      if (isMuted) {
+        synth.cancel();
+        btn.innerText = "🔇";
+      } else {
+        btn.innerText = "🔊";
+      }
     }
   </script>
 
 </body>
-
 </html>
