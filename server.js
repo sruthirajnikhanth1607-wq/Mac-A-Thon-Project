@@ -14,16 +14,16 @@ app.post("/api/chat", async (req, res) => {
     const userText = req.body.text;
     const userLocation = req.body.location || "Unknown";
 
-    console.log(`📩 Received: ${userText}`);
+    console.log(`📩 Received from ${userLocation}: ${userText}`);
 
     if (!process.env.GEMINI_API_KEY) {
         return res.status(500).json({ reply: "⚠️ Server Error: API Key missing." });
     }
 
     try {
-        // FIX: Switched to 'gemini-pro' which is the most stable model
+        // UPDATED MODEL: gemini-2.5-flash
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -42,7 +42,7 @@ app.post("/api/chat", async (req, res) => {
 
         if (!response.ok) {
             console.error("❌ Google Error:", JSON.stringify(data, null, 2));
-            return res.status(500).json({ reply: "⚠️ AI Service Error. Check terminal for details." });
+            return res.status(500).json({ reply: "⚠️ AI Service Error." });
         }
 
         const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No response.";
