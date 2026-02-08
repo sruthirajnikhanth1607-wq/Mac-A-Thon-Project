@@ -220,7 +220,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-
     document.querySelector(".primary").addEventListener("click", async () => {
         const confirmed = await showAlert(
             "Confirm Emergency Call",
@@ -235,8 +234,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "Emergency services have been contacted. Stay where you are if possible."
         );
     });
-
-
 
     document.querySelector(".secondary").addEventListener("click", async () => {
         if (!user.emergencyContact) {
@@ -253,8 +250,6 @@ document.addEventListener("DOMContentLoaded", () => {
             true
         );
     });
-
-
 
     document.querySelector(".tertiary").addEventListener("click", async () => {
         await showAlert(
