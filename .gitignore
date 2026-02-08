@@ -1,2 +1,9 @@
 .DS_Store
 
+# Secrets (NEVER commit these)
+.env
+
+# Dependencies (Too heavy to commit)
+node_modules/
+
+
