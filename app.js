@@ -66,7 +66,7 @@ async function sendMessage() {
 
   } catch (error) {
     console.error("Connection Error:", error);
-    addMessage("⚠️ Server not connected. Run 'node server.js'", "bot");
+    addMessage("⚠️ Server not connected. Run 'node chatserver.js'", "bot");
   }
 }
 
