@@ -1,50 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>CitySense Settings</title>
-  <link rel="stylesheet" href="settings.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSense - Settings</title>
+    <link rel="stylesheet" href="settings.css">
 </head>
 <body>
 
-  <div class="settings-container">
-    <h1>⚙️ Settings</h1>
+    <div class="settings-container">
+        <div class="settings-header">
+            <button class="back-btn" onclick="window.location.href='index.html'">← Home</button>
+            <h2>Settings</h2>
+        </div>
 
-    <!-- Safety Toggles -->
-    <section>
-      <h2>Safety</h2>
+        <div class="settings-content">
+            <div class="section-title">Personal Profile</div>
+            
+            <div class="input-group">
+                <label for="userName">Preferred Name</label>
+                <input type="text" id="userName" placeholder="What should we call you?">
+            </div>
 
-      <label class="toggle">
-        <span>Enable Location Tracking</span>
-        <input type="checkbox" id="locationToggle">
-      </label>
+            <div class="input-group">
+                <label for="emergencyContact">Emergency Contact (Phone)</label>
+                <input type="tel" id="emergencyContact" placeholder="e.g. 905-555-0123">
+                <small class="hint">Used for SOS alerts.</small>
+            </div>
 
-      <label class="toggle">
-        <span>Voice Responses</span>
-        <input type="checkbox" id="voiceToggle">
-      </label>
-    </section>
+            <hr class="divider">
 
-    <!-- Emergency Contacts -->
-    <section>
-      <h2>🚨 Emergency Contact</h2>
+            <div class="section-title">Safety & Voice</div>
 
-      <input id="contactName" type="text" placeholder="Contact Name">
-      <input id="contactPhone" type="tel" placeholder="Phone Number">
+            <div class="toggle-row">
+                <div class="toggle-label">
+                    <span>Voice Responses</span>
+                    <small>Chatbot speaks answers out loud</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="voiceToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
 
-      <button onclick="saveContact()">Save Contact</button>
+            <div class="toggle-row">
+                <div class="toggle-label">
+                    <span>Location Tracking</span>
+                    <small>Required for trip monitoring</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="locationToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
 
-      <p id="savedContact"></p>
-    </section>
-
-    <!-- Buttons -->
-    <div class="buttons">
-      <button class="primary" onclick="saveSettings()">Save Settings</button>
-      <button onclick="window.location.href='index.html'">⬅ Back</button>
+            <div class="actions-area">
+                <button class="save-btn" onclick="saveAllSettings()">Save Changes</button>
+                <button class="clear-btn" onclick="clearAllData()">Reset Data</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script src="settings.js"></script>
+    <script src="settings.js"></script>
 </body>
 </html>
 
