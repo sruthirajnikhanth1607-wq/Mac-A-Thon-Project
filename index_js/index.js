@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+    const userName = localStorage.getItem("safeSenseName");
+    const greetingEl = document.getElementById("greeting");
+
+    // 2. Set Greeting
+    if (userName && greetingEl) {
+        greetingEl.innerText = `Hello, ${userName}!`;
+    }
+    
     document.getElementById("custom-alert").classList.add("hidden");
 
     function showAlert(title, message, showCancel = false) {

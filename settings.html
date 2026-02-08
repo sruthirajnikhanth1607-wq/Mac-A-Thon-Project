@@ -1,71 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Settings</title>
-  <link rel="stylesheet" href="settings.css" />
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSense - Settings</title>
+    <link rel="stylesheet" href="index_css/index.css"> <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
+        .settings-container {
+            width: 90%;
+            max-width: 500px;
+            margin-top: 20px;
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h2 { color: #1f2933; margin-top: 0; }
+        
+        .form-group { margin-bottom: 20px; }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        input[type="text"], input[type="tel"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box; /* Fixes padding issues */
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .save-btn:hover { background-color: #1d4ed8; }
+
+        .danger-zone {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .clear-btn {
+            background-color: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 10px;
+            width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .clear-btn:hover { background-color: #fef2f2; }
+
+        .back-link {
+            display: block;
+            margin-bottom: 15px;
+            color: #666;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
 <body>
 
-  <div class="settings-container">
-    <button class="back-btn" onclick="goHome()">← Back</button>
-    <h1>Settings</h1>
+    <div class="settings-container">
+        <a href="index.html" class="back-link">← Back to Home</a>
+        <h2>Settings</h2>
 
-    <div class="setting-card">
-      <label>
-        <span>Enable Location Tracking</span>
-        <input type="checkbox" id="locationToggle">
-      </label>
-      <p>Allow the app to track your route to ensure safe arrival.</p>
+        <div class="form-group">
+            <label for="userName">Preferred Name</label>
+            <input type="text" id="userName" placeholder="What should we call you?">
+        </div>
+
+        <div class="form-group">
+            <label for="emergencyContact">Emergency Contact (Phone)</label>
+            <input type="tel" id="emergencyContact" placeholder="e.g. 905-555-0123">
+            <small style="color:#666; font-size: 0.8rem;">Used for quick SOS alerts.</small>
+        </div>
+
+        <button class="save-btn" onclick="saveSettings()">Save Changes</button>
+
+        <div class="danger-zone">
+            <button class="clear-btn" onclick="clearData()">Reset / Clear All Data</button>
+        </div>
     </div>
 
-    <div class="setting-card">
-      <label>
-        <span>Safety Alerts</span>
-        <input type="checkbox" id="alertToggle">
-      </label>
-      <p>Receive alerts if something seems off.</p>
-    </div>
-
-    <div class="setting-card">
-      <label for="checkinTime">Check‑in Time</label>
-      <select id="checkinTime">
-        <option value="5">5 minutes</option>
-        <option value="10">10 minutes</option>
-        <option value="15">15 minutes</option>
-      </select>
-    </div>
-
-    <section class="settings-card">
-    <h2>🚨 Emergency Contacts</h2>
-    <p class="settings-desc">
-      These contacts may be notified if you don’t reach your destination.
-    </p>
-
-    <div class="contact-form">
-      <input
-        type="text"
-        id="contact-name"
-        placeholder="Contact name"
-      />
-      <input
-        type="tel"
-        id="contact-phone"
-        placeholder="Phone number"
-      />
-      <button onclick="addContact()">Add Contact</button>
-  </div>
-
-  <ul id="contacts-list" class="contacts-list"></ul>
-</section>
-
-
-    <button id="saveBtn">Save Settings</button>
-    <p id="statusMessage" class="status"></p>
-  </div>
-
-  <script src="settings.js"></script>
+    <script src="settings.js"></script>
 </body>
 </html>
