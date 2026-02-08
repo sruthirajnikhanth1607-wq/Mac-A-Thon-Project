@@ -15,38 +15,59 @@
         </div>
 
         <div class="settings-content">
-            <div class="section-title">Personal Profile</div>
+            <div class="section-title">Profile</div>
             
-            <div class="input-group">
+            <div class="form-group">
                 <label for="userName">Preferred Name</label>
                 <input type="text" id="userName" placeholder="What should we call you?">
             </div>
 
-            <div class="input-group">
-                <label for="emergencyContact">Emergency Contact (Phone)</label>
-                <input type="tel" id="emergencyContact" placeholder="e.g. 905-555-0123">
-                <small class="hint">Used for SOS alerts.</small>
+            <div class="form-group">
+                <label>Emergency Contacts</label>
+                <div class="contact-add-row">
+                    <input type="text" id="newContactName" placeholder="Name (e.g. Mom)">
+                    <input type="tel" id="newContactPhone" placeholder="Phone Number">
+                    <button class="add-btn" onclick="addContact()">+ Add</button>
+                </div>
+                <small class="hint">Contacts added below will be notified in emergencies.</small>
+                
+                <ul id="contactsList" class="contacts-list">
+                    </ul>
             </div>
 
             <hr class="divider">
 
-            <div class="section-title">Safety & Voice</div>
+            <div class="section-title">Safety Automation</div>
 
             <div class="toggle-row">
                 <div class="toggle-label">
-                    <span>Voice Responses</span>
-                    <small>Chatbot speaks answers out loud</small>
+                    <span>Enable Safety Tracking</span>
+                    <small>Monitor trips automatically</small>
                 </div>
                 <label class="switch">
-                    <input type="checkbox" id="voiceToggle">
+                    <input type="checkbox" id="trackingToggle">
                     <span class="slider round"></span>
                 </label>
             </div>
 
+            <div class="form-group">
+                <label for="checkInInterval">Check-in Interval</label>
+                <select id="checkInInterval">
+                    <option value="15">Every 15 minutes</option>
+                    <option value="30" selected>Every 30 minutes</option>
+                    <option value="60">Every 1 hour</option>
+                    <option value="120">Every 2 hours</option>
+                </select>
+            </div>
+
+            <hr class="divider">
+
+            <div class="section-title">App Permissions</div>
+
             <div class="toggle-row">
                 <div class="toggle-label">
-                    <span>Location Tracking</span>
-                    <small>Required for trip monitoring</small>
+                    <span>Location Access</span>
+                    <small>Required for map features</small>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="locationToggle">
@@ -54,9 +75,20 @@
                 </label>
             </div>
 
+            <div class="toggle-row">
+                <div class="toggle-label">
+                    <span>Voice Responses</span>
+                    <small>Chatbot speaks out loud</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="voiceToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
             <div class="actions-area">
                 <button class="save-btn" onclick="saveAllSettings()">Save Changes</button>
-                <button class="clear-btn" onclick="clearAllData()">Reset Data</button>
+                <button class="clear-btn" onclick="clearAllData()">Reset All Data</button>
             </div>
         </div>
     </div>
