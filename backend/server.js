@@ -1,19 +1,26 @@
-
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = 5000;
 
-app.get("/", (req, res) => {
-  res.send("Backend is running");
+// Middleware
+app.use(cors());
+app.use(express.json()); // so you can send JSON in requests
+
+// Example endpoint for messages
+let messages = []; // store messages in memory for now
+
+app.post("/messages", (req, res) => {
+  const { message } = req.body; // frontend sends { message: "Hello" }
+  messages.push(message);
+  res.json({ status: "ok", message: message });
 });
 
-const PORT = 5000;
+app.get("/messages", (req, res) => {
+  res.json({ messages });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
