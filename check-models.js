@@ -23,7 +23,7 @@ async function checkModels() {
         }
       });
       console.log("---------------------------------------------");
-      console.log("👉 Copy one of the names above (e.g., models/gemini-pro) into your server.js file.");
+      console.log("👉 Copy one of the names above (e.g., models/gemini-pro) into your chatserver.js file.");
     } else {
       console.log("❌ Error fetching models:", JSON.stringify(data, null, 2));
     }
