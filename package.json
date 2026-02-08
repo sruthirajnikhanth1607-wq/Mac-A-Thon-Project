@@ -3,11 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
-  "devDependencies": {},
   "scripts": {
-  "start": "node server.js"
-}
-,
+    "start": "node server.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sruthirajnikhanth1607-wq/Mac-A-Thon-Project.git"
@@ -19,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/sruthirajnikhanth1607-wq/Mac-A-Thon-Project/issues"
   },
-  "homepage": "https://github.com/sruthirajnikhanth1607-wq/Mac-A-Thon-Project#readme"
+  "homepage": "https://github.com/sruthirajnikhanth1607-wq/Mac-A-Thon-Project#readme",
+  "dependencies": {
+    "dotenv": "^17.2.4"
+  }
 }
