@@ -220,15 +220,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-
     document.querySelector(".primary").addEventListener("click", async () => {
-        await showAlert(
-            "Emergency Services",
-            "Emergency services have been contacted. Stay where you are if possible.",
+        const confirmed = await showAlert(
+            "Confirm Emergency Call",
+            "Are you sure you want to contact emergency services?",
             true
         );
-    });
 
+        if (!confirmed) return;
+
+        await showAlert(
+            "Emergency Services Contacted",
+            "Emergency services have been contacted. Stay where you are if possible."
+        );
+    });
 
     document.querySelector(".secondary").addEventListener("click", async () => {
         if (!user.emergencyContact) {
@@ -245,8 +250,6 @@ document.addEventListener("DOMContentLoaded", () => {
             true
         );
     });
-
-
 
     document.querySelector(".tertiary").addEventListener("click", async () => {
         await showAlert(
