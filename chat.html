@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SafeSense Chat</title>
   <link rel="stylesheet" href="stylechat.css">
 </head>
+
 <body>
 
   <div class="chat-container">
 
-    <button class="back-btn" onclick="goHome()">← Back</button>
-
     <div class="chat-header">
       🛡️ SafeSense Safety Assistant
     </div>
-
+    <div id="navbar">
+      <a href="index.html">Home</a>
+      <a href="chat.html">Chatbot</a>
+      <a href="map.html">Tracking</a>
+      <a href="settings.html">Settings</a>
+    </div>
     <div id="chat-box" class="chat-box"></div>
 
     <div class="chat-input-area">
-      <input
-        type="text"
-        id="user-input"
-        placeholder="Ask about safety..."
-        onkeypress="if(event.key==='Enter') sendMessage()"
-      >
+      <input type="text" id="user-input" placeholder="Ask about safety..."
+        onkeypress="if(event.key==='Enter') sendMessage()">
       <button onclick="sendMessage()">Send</button>
       <button onclick="getLocation()" title="Share Location">📍</button>
     </div>
@@ -40,4 +41,5 @@
   </script>
 
 </body>
+
 </html>

@@ -1,1 +1,7 @@
 .DS_Store
+.env
+# Node modules
+node_modules/
+
+# Logs
+*.log
