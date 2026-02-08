@@ -251,7 +251,7 @@
 
   <div id="controls">
     <input id="destination" type="text" placeholder="Enter destination (e.g. McMaster University)" autocomplete="off">
-    <button onclick="setDestinationFromInput()" id="setDestBtn">Set Destination</button>
+    <!-- <button onclick="setDestinationFromInput()" id="setDestBtn">Set Destination</button> -->
     <div id="suggestions"></div>
   </div>
 
@@ -327,7 +327,7 @@
       if (!currentSessionId) return;
 
       try {
-        const res = await fetch("http://localhost:5000/messages", {
+        const res = await fetch("http://localhost:3000/messages", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
