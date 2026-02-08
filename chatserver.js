@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch'); // Ensure node-fetch@2 is installed
+const fetch = require('node-fetch'); // node-fetch@2 works perfectly here
 const path = require('path');
 
 const app = express();
@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(".")); // Serve frontend files from root
+app.use(express.static(".")); // Serve frontend files
 
 // ==========================================
 // 🤖 1. CHATBOT API (SafeSense AI)
@@ -26,7 +26,7 @@ app.post("/api/chat", async (req, res) => {
     }
 
     try {
-        // ✅ Uses the NEW 'gemini-2.5-flash' model
+        // ✅ UPDATED MODEL: gemini-2.5-flash
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
@@ -36,10 +36,7 @@ app.post("/api/chat", async (req, res) => {
                     contents: [{
                         role: "user",
                         parts: [{ 
-                            text: `You are SafeSense, an intelligent safety assistant. 
-                            The user is likely speaking to you, so keep your answer conversational and brief (2-3 sentences max).
-                            \nUser Location: ${userLocation}
-                            \nUser Query: ${userText}` 
+                            text: `You are SafeSense, a safety assistant. Keep answers brief (max 2 sentences).\nLocation: ${userLocation}\nQuery: ${userText}` 
                         }]
                     }]
                 })
@@ -49,34 +46,35 @@ app.post("/api/chat", async (req, res) => {
         const data = await response.json();
 
         if (!response.ok) {
-            console.error("❌ Google API Error:", JSON.stringify(data, null, 2));
-            return res.status(500).json({ reply: "⚠️ AI Error. Please check server console." });
+            console.error("❌ AI Error:", JSON.stringify(data));
+            return res.status(500).json({ reply: "⚠️ AI Service Error." });
         }
 
-        const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No response generated.";
-        console.log("✅ Reply sent.");
+        const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No response.";
         res.json({ reply: botReply });
 
     } catch (error) {
-        console.error("❌ Chat Server Error:", error);
+        console.error("❌ Server Error:", error);
         res.status(500).json({ reply: "⚠️ Connection failed." });
     }
 });
 
 // ==========================================
-// 📍 2. MAP SERVER LOGIC (Trip Sessions)
+// 📍 2. MAP & TRIP SESSION API
 // ==========================================
-// This replaces your 'mapserver.js' functionality
+// Converted from your old 'mapserver.js' to work here
 const sessions = new Map();
 
 // Create new session
 app.post("/api/sessions", (req, res) => {
   const { sessionId, userId, destination, startTime, deadline, contacts, currentLocation } = req.body;
+  
   sessions.set(sessionId, { 
       sessionId, userId, destination, startTime, deadline, 
       contacts, currentLocation, lastUpdate: Date.now(), status: 'active' 
   });
-  console.log(`📍 New Trip Session: ${sessionId}`);
+  
+  console.log(`📍 New Trip Started: ${sessionId}`);
   res.json({ status: "ok", sessionId });
 });
 
@@ -90,7 +88,7 @@ app.put("/api/sessions/:sessionId/location", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Get session info
+// Get session status
 app.get("/api/sessions/:sessionId", (req, res) => {
   const session = sessions.get(req.params.sessionId);
   if (!session) return res.status(404).json({ error: "Session not found" });
@@ -109,10 +107,8 @@ app.put("/api/sessions/:sessionId/end", (req, res) => {
 });
 
 // ------------------------------------------
-// 🚀 START MASTER SERVER
+// 🚀 LAUNCH
 // ------------------------------------------
 app.listen(PORT, () => {
     console.log(`✅ Master Server running at http://localhost:${PORT}`);
-    console.log(`   - Chat: http://localhost:${PORT}/chat.html`);
-    console.log(`   - Map:  http://localhost:${PORT}/map.html`);
 });
