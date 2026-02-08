@@ -1,148 +1,71 @@
-.back-btn {
-  background: none;
-  border: none;
-  color: #555;
-  font-size: 0.95rem;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-
-.back-btn:hover {
-  text-decoration: underline;
-}
-
-* {
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-}
-
 body {
+  font-family: Arial, sans-serif;
+  background: #f2f4f7;
   margin: 0;
-  background: #f2f2f2;
   padding: 20px;
 }
 
 .settings-container {
   max-width: 420px;
   margin: auto;
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
 h1 {
   text-align: center;
+}
+
+section {
   margin-bottom: 20px;
 }
 
-.setting-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+h2 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
 }
 
-.setting-card label {
+.toggle {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
+  margin-bottom: 10px;
 }
 
-.setting-card p {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #666;
-}
-
-select {
+input[type="text"],
+input[type="tel"] {
   width: 100%;
   padding: 10px;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  background: #111;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #333;
-}
-
-.status {
-  text-align: center;
-  margin-top: 12px;
-  color: green;
-  font-size: 0.9rem;
-}
-
-.settings-card {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-.settings-card h2 {
-  margin-bottom: 6px;
-}
-
-.settings-desc {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 15px;
-}
-
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.contact-form input {
-  padding: 10px;
+  margin-bottom: 10px;
   border-radius: 8px;
   border: 1px solid #ccc;
 }
 
-.contact-form button {
+button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+button.primary {
   background: #4a6cf7;
   color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
 }
 
-.contacts-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 15px;
-}
-
-.contacts-list li {
+.buttons {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f5f6f8;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.contacts-list button {
-  background: none;
-  border: none;
-  color: red;
-  cursor: pointer;
+#savedContact {
+  font-size: 0.9rem;
+  color: green;
 }
+
 
  

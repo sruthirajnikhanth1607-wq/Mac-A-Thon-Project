@@ -1,45 +1,53 @@
-// Load saved settings when the page opens
-document.addEventListener("DOMContentLoaded", () => {
-    const savedName = localStorage.getItem("safeSenseName");
-    const savedContact = localStorage.getItem("safeSenseContact");
+// Load saved settings
+window.onload = () => {
+  document.getElementById("locationToggle").checked =
+    localStorage.getItem("locationTracking") === "true";
 
-    if (savedName) {
-        document.getElementById("userName").value = savedName;
-    }
-    if (savedContact) {
-        document.getElementById("emergencyContact").value = savedContact;
-    }
-});
+  document.getElementById("voiceToggle").checked =
+    localStorage.getItem("voiceEnabled") === "true";
 
+  const name = localStorage.getItem("emergencyName");
+  const phone = localStorage.getItem("emergencyPhone");
+
+  if (name && phone) {
+    document.getElementById("savedContact").innerText =
+      `Saved: ${name} (${phone})`;
+  }
+};
+
+// Save toggles
 function saveSettings() {
-    const name = document.getElementById("userName").value.trim();
-    const contact = document.getElementById("emergencyContact").value.trim();
+  localStorage.setItem(
+    "locationTracking",
+    document.getElementById("locationToggle").checked
+  );
 
-    if (name) {
-        localStorage.setItem("safeSenseName", name);
-    }
-    
-    if (contact) {
-        localStorage.setItem("safeSenseContact", contact);
-    }
+  localStorage.setItem(
+    "voiceEnabled",
+    document.getElementById("voiceToggle").checked
+  );
 
-    // Visual feedback
-    const btn = document.querySelector(".save-btn");
-    const originalText = btn.innerText;
-    btn.innerText = "✅ Saved!";
-    btn.style.backgroundColor = "#10b981"; // Green
-
-    setTimeout(() => {
-        btn.innerText = originalText;
-        btn.style.backgroundColor = "#2563eb"; // Blue
-    }, 2000);
+  alert("✅ Settings saved");
 }
 
-function clearData() {
-    if(confirm("Are you sure? This will clear your name and saved contacts.")) {
-        localStorage.removeItem("safeSenseName");
-        localStorage.removeItem("safeSenseContact");
-        location.reload();
-    }
+// Save emergency contact
+function saveContact() {
+  const name = document.getElementById("contactName").value.trim();
+  const phone = document.getElementById("contactPhone").value.trim();
+
+  if (!name || !phone) {
+    alert("Please enter both name and phone number.");
+    return;
+  }
+
+  localStorage.setItem("emergencyName", name);
+  localStorage.setItem("emergencyPhone", phone);
+
+  document.getElementById("savedContact").innerText =
+    `Saved: ${name} (${phone})`;
+
+  document.getElementById("contactName").value = "";
+  document.getElementById("contactPhone").value = "";
 }
+
 
