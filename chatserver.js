@@ -41,8 +41,7 @@ app.post("/api/chat", apiLimiter, async (req, res) => {
     }
 
     try {
-        // FIXED: Changed from gemini-1.5-flash to gemini-pro
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
             method: "POST",
