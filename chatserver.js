@@ -1,35 +1,3 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const fetch = require('node-fetch');
-const rateLimit = require('express-rate-limit');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.set('trust proxy', 1);
-app.use(cors());
-app.use(express.json());
-app.use(express.static("."));
-
-// --- API KEY SANITIZER ---
-// This removes spaces, quotes, and hidden newline characters
-const getCleanKey = () => {
-    const key = process.env.GEMINI_API_KEY || "";
-    return key.replace(/['";\s]/g, '').trim(); 
-};
-
-console.log("🔑 API Key Status:", getCleanKey() ? "✅ Loaded" : "❌ Missing");
-if (getCleanKey()) {
-    console.log("🔑 Key Preview:", getCleanKey().substring(0, 10) + "...");
-}
-
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: { reply: "⚠️ Too many requests. Please wait 15 minutes." }
-});
-
 app.post("/api/chat", apiLimiter, async (req, res) => {
     const { text, location } = req.body;
     const userText = text || "";
@@ -41,8 +9,8 @@ app.post("/api/chat", apiLimiter, async (req, res) => {
     }
 
     try {
-        // Constructing the URL carefully
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // FIXED: Changed from gemini-1.5-flash to gemini-pro
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
             method: "POST",
@@ -60,7 +28,6 @@ app.post("/api/chat", apiLimiter, async (req, res) => {
 
         if (!response.ok) {
             console.error("❌ Google API Error:", JSON.stringify(data, null, 2));
-            // If we still get 400, it means the key itself is fundamentally rejected by Google
             return res.status(400).json({ 
                 reply: "⚠️ Google rejected the API key. Ensure it is enabled in Google AI Studio." 
             });
@@ -73,8 +40,4 @@ app.post("/api/chat", apiLimiter, async (req, res) => {
         console.error("❌ Fetch Error:", error);
         res.status(500).json({ reply: "⚠️ Server connection failed." });
     }
-});
-
-app.listen(PORT, () => {
-    console.log(`✅ SafeSense Server: http://localhost:${PORT}`);
 });
