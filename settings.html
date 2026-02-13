@@ -4,111 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeSense - Settings</title>
-    <link rel="stylesheet" href="index_css/index.css"> <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f6f8;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .settings-container {
-            width: 90%;
-            max-width: 500px;
-            margin-top: 20px;
-            background: white;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        h2 { color: #1f2933; margin-top: 0; }
-        
-        .form-group { margin-bottom: 20px; }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        input[type="text"], input[type="tel"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            box-sizing: border-box; /* Fixes padding issues */
-        }
-
-        .save-btn {
-            width: 100%;
-            padding: 14px;
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .save-btn:hover { background-color: #1d4ed8; }
-
-        .danger-zone {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
-        .clear-btn {
-            background-color: transparent;
-            color: #ef4444;
-            border: 1px solid #ef4444;
-            padding: 10px;
-            width: 100%;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .clear-btn:hover { background-color: #fef2f2; }
-
-        .back-link {
-            display: block;
-            margin-bottom: 15px;
-            color: #666;
-            text-decoration: none;
-            font-weight: 600;
-        }
-    </style>
+    <link rel="stylesheet" href="settings.css">
 </head>
 <body>
 
     <div class="settings-container">
-        <a href="index.html" class="back-link">← Back to Home</a>
-        <h2>Settings</h2>
-
-        <div class="form-group">
-            <label for="userName">Preferred Name</label>
-            <input type="text" id="userName" placeholder="What should we call you?">
+        <div class="settings-header">
+            <button class="back-btn" onclick="window.location.href='index.html'">← Home</button>
+            <h2>Settings</h2>
         </div>
 
-        <div class="form-group">
-            <label for="emergencyContact">Emergency Contact (Phone)</label>
-            <input type="tel" id="emergencyContact" placeholder="e.g. 905-555-0123">
-            <small style="color:#666; font-size: 0.8rem;">Used for quick SOS alerts.</small>
-        </div>
+        <div class="settings-content">
+            <div class="section-title">Profile</div>
+            
+            <div class="form-group">
+                <label for="userName">Preferred Name</label>
+                <input type="text" id="userName" placeholder="What should we call you?">
+            </div>
 
-        <button class="save-btn" onclick="saveSettings()">Save Changes</button>
+            <div class="form-group">
+                <label>Emergency Contacts</label>
+                <div class="contact-add-row">
+                    <input type="text" id="newContactName" placeholder="Name (e.g. Mom)">
+                    <input type="tel" id="newContactPhone" placeholder="Phone Number">
+                    <button class="add-btn" onclick="addContact()">+ Add</button>
+                </div>
+                <small class="hint">Contacts added below will be notified in emergencies.</small>
+                
+                <ul id="contactsList" class="contacts-list">
+                    </ul>
+            </div>
 
-        <div class="danger-zone">
-            <button class="clear-btn" onclick="clearData()">Reset / Clear All Data</button>
+            <hr class="divider">
+
+            <div class="section-title">Safety Automation</div>
+
+            <div class="toggle-row">
+                <div class="toggle-label">
+                    <span>Enable Safety Tracking</span>
+                    <small>Monitor trips automatically</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="trackingToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="checkInInterval">Check-in Interval</label>
+                <select id="checkInInterval">
+                    <option value="15">Every 15 minutes</option>
+                    <option value="30" selected>Every 30 minutes</option>
+                    <option value="60">Every 1 hour</option>
+                    <option value="120">Every 2 hours</option>
+                </select>
+            </div>
+
+            <hr class="divider">
+
+            <div class="section-title">App Permissions</div>
+
+            <div class="toggle-row">
+                <div class="toggle-label">
+                    <span>Location Access</span>
+                    <small>Required for map features</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="locationToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <div class="toggle-label">
+                    <span>Voice Responses</span>
+                    <small>Chatbot speaks out loud</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="voiceToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="actions-area">
+                <button class="save-btn" onclick="saveAllSettings()">Save Changes</button>
+                <button class="clear-btn" onclick="clearAllData()">Reset All Data</button>
+            </div>
         </div>
     </div>
 
     <script src="settings.js"></script>
 </body>
 </html>
+

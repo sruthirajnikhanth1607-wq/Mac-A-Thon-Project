@@ -1,148 +1,156 @@
-.back-btn {
-  background: none;
-  border: none;
-  color: #555;
-  font-size: 0.95rem;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-
-.back-btn:hover {
-  text-decoration: underline;
-}
-
-* {
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-}
-
 body {
-  margin: 0;
-  background: #f2f2f2;
-  padding: 20px;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f4f6f8;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
 }
 
 .settings-container {
-  max-width: 420px;
-  margin: auto;
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    height: fit-content;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
+.settings-header {
+    background: #1f2933;
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-.setting-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+.settings-header h2 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+
+.back-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+.back-btn:hover { background: rgba(255,255,255,0.3); }
+
+.settings-content { padding: 25px; }
+
+.section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
 }
 
-.setting-card label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
+.form-group { margin-bottom: 25px; }
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.95rem;
 }
 
-.setting-card p {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #666;
+/* Standard Input */
+input[type="text"], input[type="tel"], select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border 0.2s;
 }
+input:focus, select:focus { border-color: #2563eb; outline: none; }
 
-select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+/* Contact Adder Row */
+.contact-add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 5px;
 }
-
-button {
-  width: 100%;
-  padding: 14px;
-  background: #111;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
+.contact-add-row input { flex: 1; } /* Inputs share space */
+.add-btn {
+    background: #2563eb; color: white; border: none;
+    padding: 0 15px; border-radius: 8px; cursor: pointer; font-weight: bold;
 }
+.add-btn:hover { background: #1d4ed8; }
 
-button:hover {
-  background: #333;
-}
-
-.status {
-  text-align: center;
-  margin-top: 12px;
-  color: green;
-  font-size: 0.9rem;
-}
-
-.settings-card {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-.settings-card h2 {
-  margin-bottom: 6px;
-}
-
-.settings-desc {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 15px;
-}
-
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.contact-form input {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.contact-form button {
-  background: #4a6cf7;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
+/* Contact List */
 .contacts-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 15px;
+    list-style: none; padding: 0; margin: 10px 0 0 0;
+    border: 1px solid #e2e8f0; border-radius: 8px;
 }
+.contact-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 15px; border-bottom: 1px solid #e2e8f0;
+}
+.contact-item:last-child { border-bottom: none; }
+.contact-info { display: flex; flex-direction: column; }
+.contact-info strong { font-size: 0.95rem; color: #1f2933; }
+.contact-info span { font-size: 0.85rem; color: #64748b; }
 
-.contacts-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f5f6f8;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 8px;
+.remove-btn {
+    background: #fee2e2; color: #ef4444; border: none;
+    width: 28px; height: 28px; border-radius: 50%;
+    cursor: pointer; font-weight: bold; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
 }
+.remove-btn:hover { background: #fecaca; }
 
-.contacts-list button {
-  background: none;
-  border: none;
-  color: red;
-  cursor: pointer;
+.hint { display: block; margin-top: 6px; color: #94a3b8; font-size: 0.8rem; }
+.divider { border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0; }
+
+/* Toggle Switch */
+.toggle-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
 }
+.toggle-label span { display: block; font-weight: 600; color: #334155; }
+.toggle-label small { color: #94a3b8; font-size: 0.85rem; }
+
+.switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1; transition: .3s; border-radius: 34px;
+}
+.slider:before {
+    position: absolute; content: "";
+    height: 22px; width: 22px; left: 3px; bottom: 3px;
+    background-color: white; transition: .3s; border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input:checked + .slider { background-color: #2563eb; }
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* Main Buttons */
+.actions-area { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
+.save-btn {
+    width: 100%; padding: 14px;
+    background-color: #1f2933; color: white;
+    border: none; border-radius: 10px;
+    font-size: 1rem; font-weight: bold;
+    cursor: pointer; transition: transform 0.1s;
+}
+.save-btn:active { transform: scale(0.98); }
+.clear-btn {
+    background: none; border: none; color: #ef4444;
+    font-size: 0.9rem; cursor: pointer; font-weight: 500;
+}
+.clear-btn:hover { text-decoration: underline; }
+
 
  
