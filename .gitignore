@@ -1,9 +1,16 @@
-.DS_Store
-
-# Secrets (NEVER commit these)
+# Environment variables
 .env
+.env.local
+.env.development
+.env.production
 
-# Dependencies (Too heavy to commit)
+# Dependencies
 node_modules/
 
+# OS files
+.DS_Store
+Thumbs.db
 
+# Logs
+*.log
+npm-debug.log*
