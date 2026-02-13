@@ -1,4 +1,8 @@
 require('dotenv').config();
+// Add debug logging to check if API key is loading
+console.log("🔑 API Key loaded:", process.env.GEMINI_API_KEY ? "✅ Yes" : "❌ No");
+console.log("🔑 API Key preview:", process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.substring(0, 10) + "..." : "MISSING");
+
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch'); // node-fetch@2
@@ -41,8 +45,9 @@ app.post("/api/chat", apiLimiter, async (req, res) => {
     }
 
     try {
+        // FIXED: Changed from gemini-2.5-flash to gemini-1.5-flash
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
