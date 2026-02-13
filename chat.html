@@ -6,7 +6,6 @@
   <title>SafeSense Chat</title>
   <link rel="stylesheet" href="stylechat.css">
   <style>
-    /* Voice Interface Styles */
     .chat-input-area {
       display: flex; align-items: center; gap: 10px;
       padding: 15px; background: white; border-top: 1px solid #eee;
@@ -20,7 +19,6 @@
     }
     .icon-btn:hover { background: #e5e7eb; }
 
-    /* Red Pulse when Listening */
     .mic-active {
       background-color: #ef4444 !important; color: white !important;
       animation: pulse 1.5s infinite;
@@ -41,7 +39,6 @@
   </style>
 </head>
 <body>
-
   <div class="chat-container">
     <button class="back-btn" onclick="window.location.href='index.html'">← Home</button>
 
@@ -66,22 +63,18 @@
   </div>
 
   <script>
-    // --- Configuration ---
     let isMuted = false;
     let recognition;
     const synth = window.speechSynthesis;
 
-    // --- Chat Functionality ---
     async function sendMessage() {
       const input = document.getElementById("user-input");
       const text = input.value.trim();
       if (!text) return;
 
-      // 1. Show User Message
       addMessage(text, "user");
       input.value = "";
       
-      // 2. Show Loading
       const loadingId = addMessage("Thinking...", "bot", true);
 
       try {
@@ -93,11 +86,8 @@
 
         const data = await response.json();
         document.getElementById(loadingId).remove();
-        
-        // 3. Show Bot Response
         addMessage(data.reply, "bot");
         
-        // 4. Speak Response (Text-to-Speech)
         if (!isMuted) speakText(data.reply);
 
       } catch (error) {
@@ -118,7 +108,6 @@
       return div.id;
     }
 
-    // --- Voice Recognition (Speech-to-Text) ---
     function startListening() {
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         alert("Voice features work best in Chrome.");
@@ -131,7 +120,7 @@
       recognition.interimResults = false;
 
       const micBtn = document.getElementById("mic-btn");
-      micBtn.classList.add("mic-active"); // Start pulsing animation
+      micBtn.classList.add("mic-active");
 
       recognition.start();
 
@@ -139,8 +128,6 @@
         const transcript = event.results[0][0].transcript;
         document.getElementById("user-input").value = transcript;
         micBtn.classList.remove("mic-active");
-        
-        // Auto-send after a tiny delay
         setTimeout(sendMessage, 600);
       };
 
@@ -154,16 +141,12 @@
       };
     }
 
-    // --- Text-to-Speech (Robot Voice) ---
     function speakText(text) {
-      if (synth.speaking) synth.cancel(); // Stop any previous speech
-
-      // Clean text (remove markdown symbols like * or #)
+      if (synth.speaking) synth.cancel();
       const cleanText = text.replace(/[*#]/g, '');
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = 1.0; 
       utterance.pitch = 1.0;
-
       synth.speak(utterance);
     }
 
@@ -178,6 +161,6 @@
       }
     }
   </script>
-
+  <script src="app.js"></script>
 </body>
 </html>

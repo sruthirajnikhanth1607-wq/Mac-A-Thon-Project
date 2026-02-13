@@ -32,8 +32,6 @@ function detectEmergency(text) {
 // Send message
 async function sendMessage() {
   const input = document.getElementById("user-input");
-  // const chatBox = document.getElementById("chat-box"); // Not used directly here, handled by addMessage
-
   const userText = input.value.trim();
   if (!userText) return;
 
@@ -49,7 +47,6 @@ async function sendMessage() {
   }
 
   try {
-    // UPDATED: Connects to your local secure server
     const response = await fetch("http://localhost:3000/api/chat", {
       method: "POST",
       headers: {
